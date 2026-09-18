@@ -1,0 +1,20 @@
+# Pallas Taylor
+
+> Pallas Taylor is a New York City event operations service founded by Arielle Warren. It provides high-touch, day-of event support for lean investment and venture capital teams - team breakfasts, happy hours, LP dinners and portfolio gatherings - handling vendors, timelines, guest lists and onsite execution so the client's own team can be present with their guests.
+
+Pallas Taylor is an independent, founder-run service based in New York City. It is designed for small VC and investment teams that host relationship events (breakfasts, happy hours, LP gatherings) but have no dedicated event staff. The service covers planning support, venue and vendor coordination, invitation and RSVP management, run-of-show production, and onsite day-of operation.
+
+Primary contact: hello@pallastaylor.com, or the inquiry form at https://pallastaylor.com/#inquiry.
+
+## Services
+
+- [Breakfast Briefing](https://pallastaylor.com/services.html): planning call, run-of-show, venue/vendor coordination, RSVP tracking and up to 3 hours onsite, for events of up to 30 guests.
+- [Happy Hour / LP Gathering](https://pallastaylor.com/services.html): event brief, vendor coordination, invitation copy, RSVP tracking and a lead onsite operator for up to 5 hours, for events of up to 75 guests.
+- [White-Glove Event Partner](https://pallastaylor.com/services.html): end-to-end ownership of higher-touch LP dinners, portfolio gatherings and multi-vendor events, from concept through post-event debrief.
+- [Event Sprint](https://pallastaylor.com/services.html): a four-hour-minimum engagement to rescue, finish or run a specific part of an event the client has already planned.
+
+## Pages
+
+- [Home](https://pallastaylor.com/index.html.md): what Pallas Taylor does, who it serves and how to inquire.
+- [Services](https://pallastaylor.com/services.html.md): the four service packages, what each includes, scope and outcomes.
+- [About](https://pallastaylor.com/about.html.md): founder Arielle Warren's background and approach.
