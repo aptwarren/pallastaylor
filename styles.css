@@ -76,6 +76,40 @@ footer { padding: 54px clamp(24px, 7vw, 108px); display: grid; grid-template-col
 footer p:nth-child(2) { text-align: center; }
 footer p:last-child { text-align: right; }
 .footer-brand { color: var(--ink); }
+.page-hero { padding: 96px clamp(24px, 7vw, 108px) 30px; max-width: 900px; }
+.page-hero h1 { font-size: clamp(46px, 5.2vw, 80px); margin: 20px 0 28px; }
+.page-hero .lede { max-width: 640px; font-size: clamp(17px, 1.5vw, 21px); line-height: 1.6; color: var(--muted); margin: 0; }
+
+.about-hero { display: grid; grid-template-columns: 1.05fr .95fr; grid-template-areas: "head art" "intro art"; align-items: start; gap: 20px 7vw; padding: 96px clamp(24px, 7vw, 108px) 70px; }
+.about-hero-head { grid-area: head; align-self: end; }
+.about-hero-head h1 { font-size: clamp(42px, 4.6vw, 72px); margin: 20px 0 0; }
+.about-hero-art { grid-area: art; align-self: center; }
+.about-hero-intro { grid-area: intro; }
+.about-hero-intro p { max-width: 560px; font-size: clamp(17px, 1.4vw, 19px); line-height: 1.65; color: var(--muted); margin: 0; }
+
+.portrait-arch { position: relative; width: min(100%, 400px); aspect-ratio: 3 / 4; margin-left: auto; background: linear-gradient(155deg, #ede3f5, #cbb4de); border-radius: 220px 220px 24px 24px; overflow: hidden; box-shadow: inset 0 0 0 1px rgba(85,35,111,.08); }
+.portrait-arch img { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 90%; height: auto; display: block; }
+
+.about-body { padding: 0 clamp(24px, 7vw, 108px) 30px; max-width: 760px; }
+.about-body p { color: var(--ink); font-size: 17px; line-height: 1.75; margin: 0 0 24px; }
+.pull-quote { font-family: Georgia, serif; font-style: italic; font-weight: 400; color: var(--violet); font-size: clamp(24px, 2.6vw, 34px); line-height: 1.4; max-width: 720px; margin: 44px 0; padding-left: 26px; border-left: 2px solid var(--plum); }
+.credential-row { font-size: 11px; font-weight: 750; letter-spacing: .12em; text-transform: uppercase; color: var(--violet); margin: 40px 0 0; }
+
+.statement .button { margin-top: 36px; }
+
+.service-detail-list { padding: 0 clamp(24px, 7vw, 108px) 100px; border-top: 1px solid var(--line); }
+.service-detail { display: grid; grid-template-columns: 300px 1fr; gap: 10px 56px; padding: 56px 0; border-bottom: 1px solid var(--line); }
+.service-detail-head .service-number { display: block; }
+.service-detail-head h3 { margin: 20px 0 14px; font-size: 27px; }
+.service-detail-head .fit { color: var(--muted); font-size: 15px; line-height: 1.6; margin: 0; max-width: 280px; }
+.service-detail-body .meta-label { font-size: 11px; font-weight: 750; letter-spacing: .12em; text-transform: uppercase; color: var(--violet); margin: 0 0 14px; }
+.service-detail-body ul { list-style: none; margin: 0 0 28px; padding: 0; display: grid; gap: 10px; }
+.service-detail-body ul li { position: relative; padding-left: 20px; color: var(--ink); font-size: 15px; line-height: 1.6; }
+.service-detail-body ul li::before { content: ""; position: absolute; left: 0; top: 8px; width: 6px; height: 6px; border-radius: 50%; background: var(--violet); }
+.service-detail-meta { display: grid; gap: 14px; margin-top: 6px; }
+.service-detail-meta p { margin: 0; font-size: 14px; line-height: 1.6; color: var(--muted); }
+.service-detail-meta strong { color: var(--ink); font-weight: 650; }
+
 @media (max-width: 900px) {
   nav > a:not(.button) { display: none; }
   .hero { grid-template-columns: 1fr; padding-top: 70px; }
@@ -84,6 +118,10 @@ footer p:last-child { text-align: right; }
   .approach-panel, .inquiry { grid-template-columns: 1fr; gap: 65px; }
   .service-grid { grid-template-columns: 1fr; }
   .service-grid article + article { border-left: 0; padding-left: 0; }
+  .about-hero { grid-template-columns: 1fr; grid-template-areas: "head" "art" "intro"; padding-top: 70px; gap: 32px; }
+  .portrait-arch { margin: 0 auto; }
+  .service-detail { grid-template-columns: 1fr; gap: 18px; }
+  .service-detail-head .fit { max-width: none; }
 }
 @media (max-width: 560px) {
   .site-header { height: 72px; }
@@ -106,4 +144,10 @@ footer p:last-child { text-align: right; }
   .form-row { grid-template-columns: 1fr; gap: 0; }
   footer { grid-template-columns: 1fr; text-align: left; }
   footer p:nth-child(2), footer p:last-child { text-align: left; }
+  .page-hero { padding: 62px 22px 20px; }
+  .about-hero { padding: 62px 22px 50px; }
+  .about-body { padding: 0 22px 20px; }
+  .pull-quote { padding-left: 18px; margin: 32px 0; }
+  .service-detail-list { padding: 0 22px 70px; }
+  .service-detail { padding: 40px 0; }
 }
