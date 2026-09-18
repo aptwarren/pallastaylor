@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Pallas Taylor provides thoughtful, day-of event support for lean investment teams." />
+  <title>Pallas Taylor | Event support for investment teams</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="#top" aria-label="Pallas Taylor home">
+      <span class="brand-mark" aria-hidden="true">PT</span>
+      <span>Pallas Taylor</span>
+    </a>
+    <nav aria-label="Primary navigation">
+      <a href="#services">Services</a>
+      <a href="#approach">Approach</a>
+      <a class="button button-small" href="#inquiry"><span class="cta-full">Tell us about your event</span><span class="cta-short">Inquire</span></a>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow">Event support for lean investment teams</p>
+        <h1>The details are handled. <em>Your team gets to be present.</em></h1>
+        <p class="hero-intro">High-touch, day-of support for the breakfasts, happy hours, and LP gatherings that matter.</p>
+        <div class="hero-actions">
+          <a class="button" href="#inquiry">Tell us about your event <span aria-hidden="true">↗</span></a>
+          <a class="text-link" href="#services">See how we help <span aria-hidden="true">↓</span></a>
+        </div>
+      </div>
+      <div class="hero-art" aria-label="Abstract purple event scene">
+        <div class="orb orb-one"></div>
+        <div class="orb orb-two"></div>
+        <div class="event-card card-one"><span>01</span><strong>Breakfast</strong><small>A calm start</small></div>
+        <div class="event-card card-two"><span>02</span><strong>Happy hour</strong><small>An easy welcome</small></div>
+        <div class="event-card card-three"><span>03</span><strong>LP gathering</strong><small>Room to connect</small></div>
+      </div>
+    </section>
+
+    <section class="statement">
+      <p class="eyebrow">A capable pair of hands, right when you need them</p>
+      <h2>For teams with full calendars and no dedicated event staff.</h2>
+      <p>Pallas Taylor steps in to carry the day: keeping vendors aligned, the room ready, and the experience moving so your team can focus on the people in it.</p>
+    </section>
+
+    <section class="services" id="services">
+      <div class="section-heading">
+        <p class="eyebrow">What we support</p>
+        <h2>Small events. Real stakes.</h2>
+      </div>
+      <div class="service-grid">
+        <article>
+          <span class="service-number">01</span>
+          <h3>Team breakfasts</h3>
+          <p>Warm, well-paced mornings that start on time and feel considered from the first coffee.</p>
+        </article>
+        <article>
+          <span class="service-number">02</span>
+          <h3>Happy hours</h3>
+          <p>Relaxed gatherings with the run-of-show, setup, and shifting details quietly managed.</p>
+        </article>
+        <article>
+          <span class="service-number">03</span>
+          <h3>LP gatherings</h3>
+          <p>Thoughtful settings for relationship-building, with space for the right conversations to happen.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="approach" id="approach">
+      <div class="approach-panel">
+        <div>
+          <p class="eyebrow light">Our approach</p>
+          <h2>Polished in front.<br />Prepared behind the scenes.</h2>
+        </div>
+        <ol>
+          <li><span>01</span><div><strong>Get oriented</strong><p>We learn the room, the people, and what a successful day looks like.</p></div></li>
+          <li><span>02</span><div><strong>Own the handoffs</strong><p>We keep the moving pieces and people aligned.</p></div></li>
+          <li><span>03</span><div><strong>Run the day</strong><p>We stay close, solve quietly, and keep the experience on track.</p></div></li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="inquiry" id="inquiry">
+      <div class="inquiry-copy">
+        <p class="eyebrow">Start a conversation</p>
+        <h2>What are you planning?</h2>
+        <p>Share the basics. We’ll follow up to understand what support would make the day easier.</p>
+        <p class="privacy-note">Pallas Taylor is an independent event service.</p>
+      </div>
+      <form id="event-form">
+        <label>Your name<input type="text" name="name" autocomplete="name" required placeholder="Name" /></label>
+        <label>Work email<input type="email" name="email" autocomplete="email" required placeholder="you@firm.com" /></label>
+        <div class="form-row">
+          <label>Event type<select name="type" required><option value="" selected disabled>Select one</option><option>Breakfast</option><option>Happy hour</option><option>LP gathering</option><option>Something else</option></select></label>
+          <label>Event date<input type="date" name="date" /></label>
+        </div>
+        <label>Tell us a little about it<textarea name="details" rows="4" required placeholder="Location, guest count, what you need help carrying..."></textarea></label>
+        <button class="button" type="submit">Tell us about your event <span aria-hidden="true">↗</span></button>
+        <p class="form-status" id="form-status" role="status" aria-live="polite"></p>
+      </form>
+    </section>
+  </main>
+
+  <footer>
+    <a class="brand footer-brand" href="#top"><span class="brand-mark" aria-hidden="true">PT</span><span>Pallas Taylor</span></a>
+    <p>Thoughtful events for lean investment teams.</p>
+    <p>© <span id="year"></span> Pallas Taylor</p>
+  </footer>
+  <script src="script.js"></script>
+</body>
+</html>
