@@ -4,16 +4,17 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="robots" content="noindex, nofollow" />
-  <meta name="description" content="Villagers - the host's briefing book. Names, faces, and context for every guest, remembered across every event." />
-  <title>Villagers | Names &amp; Faces by Pallas Taylor</title>
+  <meta name="description" content="Villagers - guest intelligence for high-touch investor events. Build the list, know everyone, walk in ready." />
+  <title>Villagers | Guest intelligence by Pallas Taylor</title>
   <link rel="stylesheet" href="villagers.css" />
 </head>
 <body>
 
   <!--
-    Villagers - Names & Faces (work in progress)
+    Villagers (prototype)
     A self-contained static app. All data lives in the browser's localStorage;
-    nothing leaves the device. See README.md for what is real vs. stubbed.
+    nothing leaves the device. See the "What's real" view for prototype vs
+    backend boundaries. Never commit a real guest list to this repo.
   -->
 
   <!-- Light work-in-progress gate. Client-side only: it keeps casual visitors
@@ -22,7 +23,7 @@
     <div class="gate-card">
       <div class="brand-mark">V</div>
       <p class="eyebrow">Villagers · Work in progress</p>
-      <h1>The host's<br /><em>briefing book.</em></h1>
+      <h1>Walk in<br /><em>ready.</em></h1>
       <p class="gate-note">This corner is under construction. Enter the pass phrase to look around.</p>
       <input id="gate-input" type="password" placeholder="Pass phrase" autocomplete="off" />
       <button id="gate-button" class="button" type="button">Enter</button>
@@ -30,7 +31,7 @@
     </div>
   </div>
 
-  <header class="site-header">
+  <header class="site-header" id="site-header">
     <a class="brand" href="#/">
       <span class="brand-mark">V</span>
       <span class="brand-word">Villagers <small>by Pallas Taylor</small></span>
@@ -38,18 +39,21 @@
     <nav class="nav">
       <a href="#/" data-nav="events">Events</a>
       <a href="#/people" data-nav="people">People</a>
-      <a href="#/practice" data-nav="practice">Practice</a>
+      <a href="#/real" data-nav="real">What's real</a>
     </nav>
   </header>
 
   <main id="app" aria-live="polite"></main>
 
   <footer class="site-footer">
-    <span>Villagers · Names &amp; Faces</span>
+    <span>Villagers · Guest intelligence for hosts</span>
     <span class="muted">A Pallas Taylor tool · work in progress</span>
     <span class="muted">Guest data stays in this browser. Nothing is uploaded.</span>
   </footer>
 
   <script src="app.js"></script>
+  <script src="views-event.js"></script>
+  <script src="views-pages.js"></script>
+  <script>boot();</script>
 </body>
 </html>
