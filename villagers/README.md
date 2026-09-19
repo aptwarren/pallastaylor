@@ -55,6 +55,7 @@ that line is drawn.)
   verification step), SMS digest delivery (paid provider - deliberately not
   bought), LinkedIn/public-data auto-pull, automatic connector matching,
   per-host accounts.
+- **Post-event loop:** the After view, debrief state, carried-forward People open loops, intro send records, and follow-up tallies are backed by live columns on `events`, `event_guests`, `host_people`, and `connectors`. Drafts are copied for the host to send from their own channel; Villagers records the host's sent/follow-up marks, it does not send messages itself.
 - **Never commit a real guest list here.** Guest data lives in the database,
   not the repo.
 - Practice (the v1 flashcard mode) was cut from the product spec and is gone.
