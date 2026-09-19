@@ -3,5 +3,4 @@
    sign-in; guests can only read/submit via the RSVP RPCs). */
 const SB_URL = "https://ggnygyxsgstmxbydzqdm.supabase.co";
 const SB_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdnbnlneXhzZ3N0bXhieWR6cWRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk3NTkzNzUsImV4cCI6MjEwNTMzNTM3NX0.1Cw038l-SbksTzLeUkTHeaon6-1gm95Pai1d72N02Q0";
-const HOST_EMAIL = "host@villagers.pallastaylor.com";
 const sb = window.supabase.createClient(SB_URL, SB_ANON);
