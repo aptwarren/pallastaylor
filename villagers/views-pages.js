@@ -15,14 +15,14 @@ function renderRsvpPage(eventId) {
   if (!event) { location.hash = "#/"; return; }
   setNav("");
   const template = TEMPLATES.find(t => t.id === event.templateId) || TEMPLATES[3];
-  const host = event.hostName || "Your host";
+  const host = event.hostName || "";
   app.innerHTML = `
     <section class="rsvp-page">
       <div class="rsvp-card">
         <p class="eyebrow">${esc(template.id === "scratch" ? "You're invited" : template.name)}</p>
         <h1>${esc(event.name.replace(/ \(sample\)$/, ""))}</h1>
         <p class="rsvp-when">${fmtDate(event.date)}${event.doorsTime ? " · doors " + fmtTime(event.doorsTime) : ""}${event.location ? "<br />" + esc(event.location) : ""}</p>
-        <p class="rsvp-host">Hosted by ${esc(host)}</p>
+        ${host ? `<p class="rsvp-host">Hosted by ${esc(host)}</p>` : ""}
         <form id="rsvp-form" class="rsvp-form">
           <label for="r-name">Your name</label>
           <input id="r-name" required placeholder="Full name" />
@@ -37,7 +37,7 @@ function renderRsvpPage(eventId) {
           <label for="r-dietary">Dietary notes</label>
           <input id="r-dietary" placeholder="Vegetarian, allergies, anything the kitchen should know" />
           <label class="rsvp-plusone"><input id="r-plusone" type="checkbox" /> <span>I'm bringing a plus-one</span></label>
-          <label for="r-note">Anything for ${esc(firstName(host) || "the host")}?</label>
+          <label for="r-note">Anything for ${host ? esc(firstName(host)) : "the host"}?</label>
           <textarea id="r-note" placeholder="Running late, bringing a colleague, a question..."></textarea>
           <button class="button" type="submit">Send RSVP</button>
         </form>
@@ -77,7 +77,7 @@ function renderRsvpPage(eventId) {
     const done = document.getElementById("rsvp-done");
     done.hidden = false;
     document.getElementById("rsvp-done-note").textContent =
-      status === "yes" ? `${host} has your RSVP${dietary ? " and your dietary note" : ""}. See you at doors.` :
+      status === "yes" ? `${host || "The host"} has your RSVP${dietary ? " and your dietary note" : ""}. See you at doors.` :
       status === "maybe" ? "Marked as maybe - the host will check in closer to the date." :
       "You'll be missed - the host knows.";
   });
