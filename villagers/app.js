@@ -29,31 +29,41 @@ function saveStore() {
   localStorage.setItem(STORE_KEY, JSON.stringify(store));
 }
 
-/* One-time migration from the v1 prototype: carries people and
-   events forward, drops the retired practice data. */
+/* One-time migration from the v1 prototype: carries forward only
+   the host's own (non-sample) events and people, dropping the
+   retired practice data. Sample-only v1 stores are replaced by the
+   richer v2 sample set so every feature stays legible. */
+const STORE_V = 2;
+
 function migrateLegacy() {
   try {
     const raw = localStorage.getItem(LEGACY_KEY);
     if (!raw) return null;
     const old = JSON.parse(raw);
     if (!old || !Array.isArray(old.people)) return null;
-    const events = (old.events || []).map(e => Object.assign(blankEvent(e.name), {
-      id: e.id, date: e.date || "", location: e.location || "",
-      win: e.goal || "", guestIds: e.guestIds || [], sample: !!e.sample
-    }));
-    const people = old.people.map(p => Object.assign(blankPerson(p.name), {
+    const realEvents = (old.events || []).filter(e => !e.sample);
+    if (!realEvents.length) return null;
+    const keepIds = new Set();
+    const events = realEvents.map(e => {
+      (e.guestIds || []).forEach(id => keepIds.add(id));
+      return Object.assign(blankEvent(e.name), {
+        id: e.id, date: e.date || "", location: e.location || "",
+        win: e.goal || "", guestIds: e.guestIds || []
+      });
+    });
+    const people = old.people.filter(p => keepIds.has(p.id)).map(p => Object.assign(blankPerson(p.name), {
       id: p.id, role: p.role || "", company: p.company || "",
       email: p.email || "", linkedin: p.linkedin || "",
       photoUrl: p.photoUrl || "", note: p.note || "",
       flags: { vip: !!(p.flags && p.flags.vip), plusOne: !!(p.flags && p.flags.plusOne) },
       dietary: (p.flags && p.flags.dietary) ? "Dietary note (carried over)" : ""
     }));
-    return { people, events, seeded: true };
+    return { v: STORE_V, people, events, seeded: false };
   } catch (e) { return null; }
 }
 
 let store = loadStore();
-if (!store) {
+if (!store || store.v !== STORE_V) {
   store = migrateLegacy() || seedStore();
   saveStore();
 }
@@ -248,7 +258,7 @@ function seedStore() {
     { id: uid("x"), aId: sam.id, bId: tom.id, basis: "Sam asked for a technical founder to meet" }
   ];
 
-  return { people: [maya, elena, priya, tom, sam, june, alex, nina], events: [salon, breakfast], seeded: true };
+  return { v: STORE_V, people: [maya, elena, priya, tom, sam, june, alex, nina], events: [salon, breakfast], seeded: true };
 }
 
 function clearSamples() {
