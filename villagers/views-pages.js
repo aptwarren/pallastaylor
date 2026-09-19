@@ -1,6 +1,5 @@
 /* ============================================================
-   Villagers - Guest-facing RSVP page, People directory,
-   and the "What's real" prototype/backend map.
+   Villagers - Guest-facing RSVP page and People directory.
    Depends on app.js (store, helpers, esc). The RSVP page is the
    one public view: it talks to the database through the anonymous
    RSVP RPCs and never touches the host's sign-in.
@@ -143,7 +142,7 @@ function renderPeople() {
               <div>
                 <label>Email</label><input data-pf="email" value="${esc(p.email)}" />
                 <label>LinkedIn URL</label><input data-pf="linkedin" value="${esc(p.linkedin)}" />
-                <label>Public context ${backendNote("auto-pull needs the backend")}</label>
+                <label>Public context</label>
                 <input data-pf="context" value="${esc(p.context)}" placeholder="What public data would say about this person" />
               </div>
               <div>
@@ -174,42 +173,4 @@ function renderPeople() {
     renderPeople();
   }));
   hydrateAvatars();
-}
-
-/* ============================================================
-   View: What's real - prototype vs backend, plainly
-   ============================================================ */
-function renderReal() {
-  setNav("real");
-  app.innerHTML = `
-    <section class="hero">
-      <p class="eyebrow">What's real</p>
-      <h1>Prototype vs.<br /><em>the real thing.</em></h1>
-      <p class="lede">Villagers now runs on a real backend: a hosted Postgres database with
-        row-level security, live RSVP routing, and a scheduled digest worker. Here's the
-        honest line between what runs in production and what's still ahead.</p>
-    </section>
-    <section class="section real-grid">
-      <div class="real-col">
-        <h2>Real, running on the backend</h2>
-        <ul class="real-list">
-          <li><strong>Real persistence + sync.</strong> Events, guests, People records, intelligence and connector tags live in a hosted Postgres database (Supabase). Phone and laptop see the same data; clearing the browser loses nothing.</li>
-          <li><strong>RSVPs route.</strong> A guest's response on the RSVP page writes straight to the database and appears on the host's guest list in real time.</li>
-          <li><strong>The digest sends itself.</strong> A scheduled worker in the database builds each event's digest - the ask, avoid list, open loops and pairings, in the host's format - and emails it at the configured lead time (default T-60) to the host's email.</li>
-          <li><strong>Event templates.</strong> Investor Breakfast, Happy Hour, Salon Dinner - each sets the tone of the guest RSVP page and sensible defaults.</li>
-          <li><strong>People.</strong> A standing record per person across every event, with "met before" history and open loops carried forward.</li>
-          <li><strong>Multi-host ready.</strong> The schema separates canonical People (platform-wide) from each host's private notes, so future hosts bring their own events without seeing each other's intelligence.</li>
-        </ul>
-      </div>
-      <div class="real-col">
-        <h2>Still ahead</h2>
-        <ul class="real-list dim">
-          <li><strong>Sending from you.</strong> The digest currently arrives from the system's address. Sending from your own email domain (so guests and the host only ever see you) takes verifying pallastaylor.com with the email provider - a small DNS step when you're ready.</li>
-          <li><strong>Digest as a text.</strong> SMS delivery needs a paid provider (Twilio or similar) - deliberately not bought. Email is the free rail and it's live.</li>
-          <li><strong>Public-data pull.</strong> Role, company and context auto-filled from LinkedIn and public sources, shown as suggestions you can edit - today everything is typed by hand (fields are marked where suggestions will land).</li>
-          <li><strong>Automatic connector matching.</strong> Suggested pairings from LinkedIn mutuals, shared portfolio companies and schools. Manual tags first; this comes later.</li>
-          <li><strong>Real accounts.</strong> Today one pass phrase signs the host in. Per-host logins (and guests of many hosts on one platform) are designed into the schema but not in the UI yet.</li>
-        </ul>
-      </div>
-    </section>`;
 }
