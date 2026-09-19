@@ -64,6 +64,7 @@ async function loadStoreFromDb() {
       email: p.email || "", linkedin: p.linkedin || "", photoUrl: "",
       context: p.public_context || "", contextSuggested: !!p.context_suggested,
       dietary: o.dietary || "", note: o.private_notes || "",
+      currentOpenLoop: o.current_open_loop || "",
       flags: { vip: !!o.vip, plusOne: false }
     };
   });
@@ -77,6 +78,7 @@ async function loadStoreFromDb() {
       hostName: e.host_name || currentHost.name || "",
       digestMinutes: e.digest_lead_minutes, sample: !!e.sample,
       rsvpToken: e.rsvp_public_token,
+      debriefWin: e.debrief_win, debriefNotes: e.debrief_notes || "", debriefedAt: e.debriefed_at,
       guestIds: [], rsvp: {}, intel: {}, edges: []
     };
   });
@@ -88,7 +90,8 @@ async function loadStoreFromDb() {
     ev.guestIds.push(g.person_id);
     ev.intel[g.person_id] = {
       arriving: g.arrival_time || "", ask: g.ask || "",
-      avoid: g.avoid || "", openLoop: g.open_loop || ""
+      avoid: g.avoid || "", openLoop: g.open_loop || (personById(g.person_id) || {}).currentOpenLoop || "",
+      debriefOpenLoop: g.debrief_open_loop || ""
     };
     if (g.responded_at) {
       ev.rsvp[g.person_id] = {
@@ -216,6 +219,32 @@ async function dbAddEdge(eventId, aId, bId, basis) {
 
 async function dbDelEdge(id) {
   await sb.from("connectors").delete().eq("id", id);
+}
+
+async function dbSaveDebrief(event, didWin, notes, guestLoops) {
+  for (const [personId, value] of Object.entries(guestLoops)) {
+    const loop = (value || "").trim();
+    await sb.from("event_guests").update({ debrief_open_loop: loop || null })
+      .eq("event_id", event.id).eq("person_id", personId);
+    await sb.from("host_people").update({ current_open_loop: loop || null })
+      .eq("host_id", currentHost.id).eq("person_id", personId);
+  }
+  await sb.from("events").update({
+    debrief_win: didWin, debrief_notes: (notes || "").trim() || null,
+    debriefed_at: new Date().toISOString()
+  }).eq("id", event.id);
+}
+
+async function dbMarkIntroSent(edgeId, message) {
+  await sb.from("connectors").update({
+    intro_sent_at: new Date().toISOString(), intro_message: message
+  }).eq("id", edgeId);
+}
+
+async function dbLogFollowUp(edgeId, count) {
+  await sb.from("connectors").update({
+    follow_up_count: count, follow_up_logged_at: new Date().toISOString()
+  }).eq("id", edgeId);
 }
 
 async function dbClearSamples() {
@@ -559,6 +588,7 @@ function route() {
   if (!storeLoaded) { location.hash = "#/"; return; }
   if (parts[0] === "event" && parts[1]) return renderEvent(parts[1], parts[2] || "guests");
   if (parts[0] === "people") return renderPeople();
+  if (parts[0] === "after") return renderAfter();
   return renderEvents();
 }
 
