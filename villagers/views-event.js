@@ -51,7 +51,7 @@ function renderEvent(eventId, tab) {
 
   app.innerHTML = `
     <section class="book-head">
-      <div class="crumb"><a href="#/">Events</a> / ${esc(event.name)}${event.sample ? ' <span class="tile-sample">sample</span>' : ""}</div>
+      <div class="crumb"><a href="#/">Events</a> / ${esc(event.name.replace(/ \(sample\)$/, ""))}</div>
       <div class="book-title-row">
         <h1>${esc(event.name.replace(/ \(sample\)$/, ""))}</h1>
       </div>
@@ -143,7 +143,6 @@ function renderGuestsTab(body, event, guests) {
       </div>
       <div class="or-divider">or paste a list</div>
       <textarea id="ag-paste" placeholder="Names, one per line - or a CSV export with name, role, company, email, linkedin columns."></textarea>
-      <p class="field-note">Auto-pull of role, company and public context from LinkedIn ${backendNote("needs the backend")} - fields stay host-editable either way.</p>
       <button class="button ghost small" id="ag-import" type="button">Import list</button>
       <span class="muted" id="ag-result"></span>
     </div>`;
@@ -208,9 +207,6 @@ function renderConnectorsTab(body, event, guests) {
       <p class="muted">A warm intro from a mutual beats a cold intro from the host. Tag who should
         meet whom, and why the connection is credible - each tag is an <em>edge between two
         guests</em>, not a fact about one person. The digest surfaces these as pairings.</p>
-      <p class="muted">Automatic matching from LinkedIn mutuals, shared portfolio companies and
-        schools ${backendNote("needs the backend")} - v1 is manual tags, which are more reliably
-        accurate early on anyway.</p>
     </div>
     <div class="edge-list">
       ${edges.map(ed => {
@@ -280,9 +276,8 @@ function renderDigestTab(body, event, guests) {
       <p class="muted">An hour before doors, the host gets this as an email - a few lines per guest,
         no dashboard to remember to open. Timing is configurable per event in Settings
         (currently ${event.digestMinutes || 60} minutes before doors${sendAt ? ", lands around " + fmtTime(sendAt) : ""}).</p>
-      <p class="muted">This one is real: the digest generates and emails itself to
-        <strong>${esc(digestTo)}</strong> at the configured time. Delivery as a text message
-        ${backendNote("needs a paid SMS provider")} - the email rail is the free first step.</p>
+      <p class="muted">The digest generates and emails itself to
+        <strong>${esc(digestTo)}</strong> at the configured time.</p>
     </div>
     <div class="digest-preview">
       <div class="digest-meta">Villagers · day-of digest${event.date ? " · " + fmtDate(event.date) : ""}${sendAt ? " · sends ~" + fmtTime(sendAt) : ""}</div>
@@ -314,9 +309,8 @@ function renderRsvpTab(body, event, guests) {
     <div class="tab-intro">
       <p class="muted">Send the RSVP link by text or email <strong>${hostLine}</strong> - guests
         experience it as coming directly from you, not from Villagers. Their responses save
-        straight to your Villagers backend and land here live, on any device.</p>
-      <p class="muted">Sending the invite itself from your own number/email automatically
-        ${backendNote("needs the backend")} - for now you copy the link or the message and send it yourself.</p>
+        straight to your guest list and land here live, on any device.</p>
+      <p class="muted">Copy the link or the message and send it yourself - guests experience it as coming directly from you.</p>
     </div>
     <div class="rsvp-share">
       <label>RSVP link</label>
