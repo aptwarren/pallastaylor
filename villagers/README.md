@@ -4,9 +4,10 @@ Guest intelligence for hosts running high-touch investor/LP events - breakfasts,
 happy hours, salon dinners. Build the guest list, get the ask / avoid list / open
 loops for every attendee, and walk in ready.
 
-**Pass phrase:** `villagers` (signs the host in through Supabase Auth. It is one
-shared phrase for now, not per-user accounts - rotate it by changing the host
-user's password in Supabase if it ever leaks beyond intent.)
+**Host sign-in:** individual Supabase Auth accounts use email magic links. No host
+email or password is stored in the public source. The retired shared credential remains
+visible in git history, but its Supabase password has been rotated and it no longer works.
+
 
 ## The three pieces
 
@@ -40,8 +41,9 @@ user's password in Supabase if it ever leaks beyond intent.)
   via `pg_net` through the email provider's API (key lives in the `app_config`
   table, which has RLS enabled and no read policies).
 - The front end talks to Supabase with the public anon key in `config.js` -
-  safe to commit because every table is behind RLS; the host signs in with the
-  pass phrase (Supabase Auth), guests only ever reach the RSVP RPCs.
+  safe to commit because every table is behind RLS; the host signs in with a private email magic link (Supabase Auth), guests only
+  ever reach the RSVP RPCs. Canonical person creation runs through the
+  membership-checked `create_host_person` RPC; direct authenticated inserts are denied.
 
 ## What is real vs. stubbed
 
@@ -54,7 +56,7 @@ that line is drawn.)
 - **Still ahead:** sending from the host's own email domain (needs a DNS
   verification step), SMS digest delivery (paid provider - deliberately not
   bought), LinkedIn/public-data auto-pull, automatic connector matching,
-  per-host accounts.
+  automatic per-host provisioning beyond the current approved host.
 - **Post-event loop:** the After view, debrief state, carried-forward People open loops, intro send records, and follow-up tallies are backed by live columns on `events`, `event_guests`, `host_people`, and `connectors`. Drafts are copied for the host to send from their own channel; Villagers records the host's sent/follow-up marks, it does not send messages itself.
 - **Never commit a real guest list here.** Guest data lives in the database,
   not the repo.
