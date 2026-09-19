@@ -174,3 +174,32 @@ function renderPeople() {
   }));
   hydrateAvatars();
 }
+
+
+
+/* ============================================================
+   View: After - portfolio impact and debrief queue
+   ============================================================ */
+function renderAfter() {
+  setNav("after");
+  const intros = store.events.reduce((n,e)=>n+(e.edges||[]).filter(x=>x.introSentAt).length,0);
+  const followUps = store.events.reduce((n,e)=>n+(e.edges||[]).reduce((m,x)=>m+(x.followUpCount||0),0),0);
+  const closed = store.events.filter(e=>e.debriefedAt).length;
+  const past = store.events.filter(e=>new Date(e.startsAt)<new Date()).sort((a,b)=>new Date(b.startsAt)-new Date(a.startsAt));
+  app.innerHTML = `<section class="impact-page">
+    <p class="eyebrow">After the room</p><h1>Prove what your events produce.</h1>
+    <p class="lede">The value of a room is what moves after everyone leaves. Villagers keeps the open loops, introductions and follow-through in one place.</p>
+    <div class="impact-grid">
+      <div class="impact-number"><strong>${store.events.length}</strong><span>events hosted</span></div>
+      <div class="impact-number accent"><strong>${intros}</strong><span>intros made</span></div>
+      <div class="impact-number"><strong>${followUps}</strong><span>follow-up meetings</span></div>
+      <div class="impact-number"><strong>${closed}</strong><span>debriefs closed</span></div>
+    </div>
+    <div class="impact-statement">Your rooms produced <strong>${intros} introduction${intros===1?"":"s"}</strong> and <strong>${followUps} follow-up meeting${followUps===1?"":"s"}</strong>.</div>
+    <div class="section-head impact-list-head"><div><p class="section-kicker">Keep the signal</p><h2>Event follow-through</h2></div></div>
+    <div class="after-event-list">${past.map(e=>{
+      const sent=(e.edges||[]).filter(x=>x.introSentAt).length, fu=(e.edges||[]).reduce((n,x)=>n+(x.followUpCount||0),0);
+      return `<a class="after-event-row" href="#/event/${e.id}/after"><div><span class="status-dot ${e.debriefedAt?"done":""}"></span><strong>${esc(e.name)}</strong><small>${fmtDate(e.date)}</small></div><div class="event-outcome"><span>${e.debriefedAt?"Debrief closed":"Debrief open"}</span><span>${sent} intros · ${fu} follow-ups</span><b>Continue →</b></div></a>`;
+    }).join("") || '<p class="empty-state">Completed events will collect here.</p>'}</div>
+  </section>`;
+}
