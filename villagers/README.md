@@ -45,6 +45,10 @@ user's password in Supabase if it ever leaks beyond intent.)
 
 ## What is real vs. stubbed
 
+(2026-09-19: the in-app "What's real" page and all prototype/backend scaffolding
+copy were removed from the client-facing app - this README is now the one place
+that line is drawn.)
+
 - **Real:** persistence + phone/laptop sync, live RSVP routing, the digest
   emailing itself at T-60, the full People/intelligence/connector layer.
 - **Still ahead:** sending from the host's own email domain (needs a DNS
@@ -61,5 +65,5 @@ user's password in Supabase if it ever leaks beyond intent.)
 - `config.js` - Supabase URL + public anon key
 - `app.js` - store mirror, db layer, model, templates, router, events home
 - `views-event.js` - event dashboard: guests, connectors, digest, RSVP, settings
-- `views-pages.js` - guest-facing RSVP page, People directory, What's real
+- `views-pages.js` - guest-facing RSVP page, People directory
 - `villagers.css` - styles (Pallas Taylor purple system)
