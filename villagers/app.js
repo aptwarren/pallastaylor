@@ -247,15 +247,16 @@ function seedStore() {
     avoid: "Alloy's layoffs last month",
     openLoop: ""
   };
-  salon.intel[sam.id] = { arriving: "18:20", ask: "get him talking to Tom", avoid: "", openLoop: "" };
+  salon.intel[sam.id] = { arriving: "18:20", ask: "make sure he leaves with one founder intro", avoid: "", openLoop: "" };
   salon.rsvp[elena.id] = { status: "yes", dietary: "Vegetarian", at: "2026-09-25" };
   salon.rsvp[maya.id] = { status: "yes", at: "2026-09-24" };
   salon.rsvp[priya.id] = { status: "yes", at: "2026-09-26" };
   salon.rsvp[sam.id] = { status: "yes", at: "2026-09-27" };
   salon.rsvp[june.id] = { status: "maybe", at: "2026-09-28" };
+  salon.rsvp[alex.id] = { status: "yes", at: "2026-09-28" };
   salon.edges = [
     { id: uid("x"), aId: elena.id, bId: maya.id, basis: "they overlap on Northline" },
-    { id: uid("x"), aId: sam.id, bId: alex.id, basis: "Sam asked for a warm intro to active angels" }
+    { id: uid("x"), aId: sam.id, bId: alex.id, basis: "he asked for a warm intro to active angels" }
   ];
 
   return { v: STORE_V, people: [maya, elena, priya, tom, sam, june, alex, nina], events: [salon, breakfast], seeded: true };
