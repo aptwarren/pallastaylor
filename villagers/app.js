@@ -225,7 +225,7 @@ function seedStore() {
 
   const salon = Object.assign(blankEvent("Fall Salon Dinner (sample)"), {
     templateId: "salon", date: "2026-10-02", doorsTime: "18:15",
-    location: "Tribeca", digestMinutes: 60,
+    location: "Tribeca", digestMinutes: 60, hostName: "Arielle",
     win: "Eight seats. Mix two LPs with four founders and two platform leads; every guest leaves with one warm intro.",
     guestIds: [maya.id, priya.id, elena.id, sam.id, june.id, alex.id], sample: true
   });
@@ -255,7 +255,7 @@ function seedStore() {
   salon.rsvp[june.id] = { status: "maybe", at: "2026-09-28" };
   salon.edges = [
     { id: uid("x"), aId: elena.id, bId: maya.id, basis: "they overlap on Northline" },
-    { id: uid("x"), aId: sam.id, bId: tom.id, basis: "Sam asked for a technical founder to meet" }
+    { id: uid("x"), aId: sam.id, bId: alex.id, basis: "Sam asked for a warm intro to active angels" }
   ];
 
   return { v: STORE_V, people: [maya, elena, priya, tom, sam, june, alex, nina], events: [salon, breakfast], seeded: true };
