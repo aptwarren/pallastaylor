@@ -6,19 +6,21 @@
   <meta name="robots" content="noindex, nofollow" />
   <meta name="description" content="Villagers - guest intelligence for high-touch investor events. Build the list, know everyone, walk in ready." />
   <title>Villagers | Guest intelligence by Pallas Taylor</title>
-  <link rel="stylesheet" href="villagers.css?v=3" />
+  <link rel="stylesheet" href="villagers.css?v=4" />
 </head>
 <body>
 
   <!--
-    Villagers (prototype)
-    A self-contained static app. All data lives in the browser's localStorage;
-    nothing leaves the device. See the "What's real" view for prototype vs
-    backend boundaries. Never commit a real guest list to this repo.
+    Villagers (v3 - real backend)
+    Static front end backed by Supabase (Postgres + RLS): events, guests,
+    People records, intelligence and connectors sync across devices, RSVPs
+    route live, and the day-of digest emails itself from a database worker.
+    See the "What's real" view for the prototype/backend line.
+    Never commit a real guest list to this repo.
   -->
 
-  <!-- Light work-in-progress gate. Client-side only: it keeps casual visitors
-       out, it is NOT real security. Code lives in app.js (GATE_CODE). -->
+  <!-- Host gate: the pass phrase signs the host in (Supabase Auth). Guest
+       RSVP pages at #/rsvp/<token> skip this gate entirely. -->
   <div id="gate" class="gate" hidden>
     <div class="gate-card">
       <div class="brand-mark">V</div>
@@ -48,12 +50,14 @@
   <footer class="site-footer">
     <span>Villagers · Guest intelligence for hosts</span>
     <span class="muted">A Pallas Taylor tool · work in progress</span>
-    <span class="muted">Guest data stays in this browser. Nothing is uploaded.</span>
+    <span class="muted">Synced through your Villagers backend. Never commit a real guest list here.</span>
   </footer>
 
-  <script src="app.js?v=3"></script>
-  <script src="views-event.js?v=3"></script>
-  <script src="views-pages.js?v=3"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js?v=4"></script>
+  <script src="app.js?v=4"></script>
+  <script src="views-event.js?v=4"></script>
+  <script src="views-pages.js?v=4"></script>
   <script>boot();</script>
 </body>
 </html>
