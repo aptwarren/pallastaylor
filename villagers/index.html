@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow" />
+  <meta name="description" content="Villagers - the host's briefing book. Names, faces, and context for every guest, remembered across every event." />
+  <title>Villagers | Names &amp; Faces by Pallas Taylor</title>
+  <link rel="stylesheet" href="villagers.css" />
+</head>
+<body>
+
+  <!--
+    Villagers - Names & Faces (work in progress)
+    A self-contained static app. All data lives in the browser's localStorage;
+    nothing leaves the device. See README.md for what is real vs. stubbed.
+  -->
+
+  <!-- Light work-in-progress gate. Client-side only: it keeps casual visitors
+       out, it is NOT real security. Code lives in app.js (GATE_CODE). -->
+  <div id="gate" class="gate" hidden>
+    <div class="gate-card">
+      <div class="brand-mark">V</div>
+      <p class="eyebrow">Villagers · Work in progress</p>
+      <h1>The host's<br /><em>briefing book.</em></h1>
+      <p class="gate-note">This corner is under construction. Enter the pass phrase to look around.</p>
+      <input id="gate-input" type="password" placeholder="Pass phrase" autocomplete="off" />
+      <button id="gate-button" class="button" type="button">Enter</button>
+      <p id="gate-error" class="gate-error" hidden>Not quite - try again.</p>
+    </div>
+  </div>
+
+  <header class="site-header">
+    <a class="brand" href="#/">
+      <span class="brand-mark">V</span>
+      <span class="brand-word">Villagers <small>by Pallas Taylor</small></span>
+    </a>
+    <nav class="nav">
+      <a href="#/" data-nav="events">Events</a>
+      <a href="#/people" data-nav="people">People</a>
+      <a href="#/practice" data-nav="practice">Practice</a>
+    </nav>
+  </header>
+
+  <main id="app" aria-live="polite"></main>
+
+  <footer class="site-footer">
+    <span>Villagers · Names &amp; Faces</span>
+    <span class="muted">A Pallas Taylor tool · work in progress</span>
+    <span class="muted">Guest data stays in this browser. Nothing is uploaded.</span>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
