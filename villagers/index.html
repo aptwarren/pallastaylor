@@ -6,7 +6,7 @@
   <meta name="robots" content="noindex, nofollow" />
   <meta name="description" content="Villagers - guest intelligence for high-touch investor events. Build the list, know everyone, walk in ready." />
   <title>Villagers | Guest intelligence by Pallas Taylor</title>
-  <link rel="stylesheet" href="villagers.css?v=6" />
+  <link rel="stylesheet" href="villagers.css?v=7" />
 </head>
 <body>
 
@@ -15,17 +15,17 @@
     real-vs-stubbed list. Never commit a real guest list to this repo.
   -->
 
-  <!-- Host gate: the pass phrase signs the host in (Supabase Auth). Guest
-       RSVP pages at #/rsvp/<token> skip this gate entirely. -->
+  <!-- Host gate: private email-link authentication through Supabase Auth.
+       Guest RSVP pages at #/rsvp/<token> skip this gate entirely. -->
   <div id="gate" class="gate" hidden>
     <div class="gate-card">
       <div class="brand-mark">V</div>
       <p class="eyebrow">Villagers · by Pallas Taylor</p>
       <h1>Walk in<br /><em>ready.</em></h1>
-      <p class="gate-note">Enter the host pass phrase to continue.</p>
-      <input id="gate-input" type="password" placeholder="Pass phrase" autocomplete="off" />
-      <button id="gate-button" class="button" type="button">Enter</button>
-      <p id="gate-error" class="gate-error" hidden>Not quite - try again.</p>
+      <p class="gate-note">Enter your host email to continue.</p>
+      <input id="gate-input" type="email" placeholder="Host email" autocomplete="email" />
+      <button id="gate-button" class="button" type="button">Email me a sign-in link</button>
+      <p id="gate-error" class="gate-error" hidden>That email does not have host access.</p>
     </div>
   </div>
 
@@ -49,10 +49,10 @@
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="config.js?v=6"></script>
-  <script src="app.js?v=6"></script>
-  <script src="views-event.js?v=6"></script>
-  <script src="views-pages.js?v=6"></script>
+  <script src="config.js?v=7"></script>
+  <script src="app.js?v=7"></script>
+  <script src="views-event.js?v=7"></script>
+  <script src="views-pages.js?v=7"></script>
   <script>boot();</script>
 </body>
 </html>
