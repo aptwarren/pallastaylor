@@ -61,7 +61,6 @@ input[type="checkbox"], input[type="radio"] { width: auto; margin-top: 0; }
 textarea { resize: vertical; min-height: 80px; line-height: 1.55; }
 label { display: block; font-size: 11px; font-weight: 750; letter-spacing: .12em; text-transform: uppercase; color: var(--violet); margin-top: 22px; }
 .field-note { font-size: 12px; color: var(--muted); margin-top: 6px; letter-spacing: 0; font-weight: 400; }
-.backend-note { display: inline-block; font-size: 10px; font-weight: 750; letter-spacing: .1em; text-transform: uppercase; color: var(--gold); border: 1px solid rgba(169,131,47,.4); background: #faf5e8; border-radius: 999px; padding: 3px 9px; vertical-align: middle; }
 .suggest-chip { display: inline-block; font-size: 10px; font-weight: 750; letter-spacing: .08em; text-transform: uppercase; color: var(--violet); border: 1px dashed var(--lilac); border-radius: 999px; padding: 2px 8px; margin-left: 6px; }
 
 /* ---------- events home ---------- */
@@ -89,7 +88,6 @@ label { display: block; font-size: 11px; font-weight: 750; letter-spacing: .12em
 .event-tile h3 { font-size: 24px; }
 .event-tile .tile-meta { font-size: 13px; color: var(--muted); }
 .event-tile .tile-returning { font-size: 12px; color: var(--plum); }
-.tile-sample { font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--gold); }
 .empty-state { padding: 40px 0; color: var(--muted); font-size: 15px; line-height: 1.7; max-width: 520px; }
 
 /* ---------- event dashboard ---------- */
@@ -188,7 +186,6 @@ label { display: block; font-size: 11px; font-weight: 750; letter-spacing: .12em
 .person-edit summary:hover { color: var(--plum); }
 .person-edit[open] summary { margin-bottom: 6px; }
 
-/* ---------- what's real ---------- */
 .real-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: clamp(26px, 4vw, 60px); }
 .real-col h2 { margin-bottom: 20px; }
 .real-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 16px; }
