@@ -111,29 +111,17 @@ async function loadStoreFromDb() {
 
 /* ---------- mutations: database first, then reload ---------- */
 async function dbInsertPerson(g) {
-  /* Returns the person id, creating the people + host_people rows. */
-  const email = (g.email || "").trim().toLowerCase();
-  let pid = null;
-  if (email) {
-    const { data, error } = await sb.from("people")
-      .upsert({ email, full_name: g.name.trim() }, { onConflict: "email" })
-      .select("id").single();
-    if (error) { console.error("person upsert", error); return null; }
-    pid = data.id;
-    const patch = {};
-    if (g.role) patch.role = g.role;
-    if (g.company) patch.company = g.company;
-    if (g.linkedin) patch.linkedin = g.linkedin;
-    if (Object.keys(patch).length) await sb.from("people").update(patch).eq("id", pid);
-  } else {
-    const { data, error } = await sb.from("people")
-      .insert({ full_name: g.name.trim(), role: g.role || null, company: g.company || null, linkedin: g.linkedin || null })
-      .select("id").single();
-    if (error) { console.error("person insert", error); return null; }
-    pid = data.id;
-  }
-  await sb.from("host_people").upsert({ host_id: currentHost.id, person_id: pid }, { onConflict: "host_id,person_id" });
-  return pid;
+  /* Canonical person creation is host-scoped in the database RPC. */
+  const { data, error } = await sb.rpc("create_host_person", {
+    p_host_id: currentHost.id,
+    p_full_name: g.name.trim(),
+    p_email: (g.email || "").trim().toLowerCase() || null,
+    p_role: g.role || null,
+    p_company: g.company || null,
+    p_linkedin: g.linkedin || null
+  });
+  if (error) { console.error("person create", error); return null; }
+  return data;
 }
 
 async function dbAddGuests(event, guests) {
@@ -639,21 +627,28 @@ function boot() {
     if (session) { enterRoom(); return; }
     gate.hidden = false;
     input.focus();
-    const tryCode = async () => {
+    const requestLink = async () => {
       button.disabled = true;
-      const phrase = input.value.trim();
-      const { error: signInError } = await sb.auth.signInWithPassword({ email: HOST_EMAIL, password: phrase });
+      error.hidden = true;
+      const email = input.value.trim().toLowerCase();
+      const redirectTo = location.origin + location.pathname;
+      const { error: signInError } = await sb.auth.signInWithOtp({
+        email,
+        options: { emailRedirectTo: redirectTo, shouldCreateUser: false }
+      });
       button.disabled = false;
       if (!signInError) {
-        enterRoom();
+        input.disabled = true;
+        button.hidden = true;
+        document.querySelector(".gate-note").textContent = "Check your email for your private sign-in link.";
       } else {
+        error.textContent = "That email does not have host access.";
         error.hidden = false;
-        input.value = "";
         input.focus();
       }
     };
-    button.addEventListener("click", tryCode);
-    input.addEventListener("keydown", (e) => { if (e.key === "Enter") tryCode(); });
+    button.addEventListener("click", requestLink);
+    input.addEventListener("keydown", (e) => { if (e.key === "Enter") requestLink(); });
   });
 }
 
