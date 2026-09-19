@@ -409,7 +409,9 @@ function introDraft(event, edge) {
   const a = personById(edge.aId), b = personById(edge.bId);
   if (!a || !b) return "";
   const host = event.hostName || (currentHost && currentHost.name) || "";
-  return `Hi ${firstName(a.name)} and ${firstName(b.name)} - I wanted to connect you after ${event.name}. ${edge.basis.replace(/[.]+$/, "")}. I think you two should know each other, so I'll leave it with you from here.${host ? `\n\n${host}` : ""}`;
+  const basis = edge.basis.replace(/[.]+$/, "");
+  const reason = basis ? basis.charAt(0).toUpperCase() + basis.slice(1) : "I think you two should know each other";
+  return `Hi ${firstName(a.name)} and ${firstName(b.name)} - I wanted to connect you after ${event.name}. ${reason}. I think you two should know each other, so I'll leave it with you from here.${host ? `\n\n${host}` : ""}`;
 }
 
 function renderAfterEventTab(body, event, guests) {
@@ -484,4 +486,4 @@ function renderAfterEventTab(body, event, guests) {
     const edge=event.edges.find(e=>e.id===btn.dataset.followup); btn.disabled=true;
     await dbLogFollowUp(edge.id,(edge.followUpCount||0)+1); await loadStoreFromDb(); renderEvent(event.id,"after");
   }));
-       }
+}
