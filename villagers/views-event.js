@@ -47,7 +47,7 @@ function renderEvent(eventId, tab) {
   setNav("events");
   const guests = event.guestIds.map(personById).filter(Boolean);
   const yesGuests = guests.filter(g => (event.rsvp[g.id] || {}).status === "yes");
-  const tabs = [["guests", "Guests"], ["connectors", "Connectors"], ["digest", "Digest"], ["rsvp", "RSVP"], ["settings", "Settings"]];
+  const tabs = [["guests", "Guests"], ["connectors", "Connectors"], ["digest", "Digest"], ["rsvp", "RSVP"], ["after", "After"], ["settings", "Settings"]];
 
   app.innerHTML = `
     <section class="book-head">
@@ -70,7 +70,8 @@ function renderEvent(eventId, tab) {
     <section id="tab-body"></section>`;
 
   const body = document.getElementById("tab-body");
-  if (tab === "connectors") renderConnectorsTab(body, event, guests);
+  if (tab === "after") renderAfterEventTab(body, event, guests);
+  else if (tab === "connectors") renderConnectorsTab(body, event, guests);
   else if (tab === "digest") renderDigestTab(body, event, guests);
   else if (tab === "rsvp") renderRsvpTab(body, event, guests);
   else if (tab === "settings") renderSettingsTab(body, event);
@@ -400,3 +401,87 @@ function renderSettingsTab(body, event) {
     location.hash = "#/";
   });
 }
+
+
+
+/* ---------- After tab: debrief, intro follow-through, proof ---------- */
+function introDraft(event, edge) {
+  const a = personById(edge.aId), b = personById(edge.bId);
+  if (!a || !b) return "";
+  const host = event.hostName || (currentHost && currentHost.name) || "";
+  return `Hi ${firstName(a.name)} and ${firstName(b.name)} - I wanted to connect you after ${event.name}. ${edge.basis.replace(/[.]+$/, "")}. I think you two should know each other, so I'll leave it with you from here.${host ? `\n\n${host}` : ""}`;
+}
+
+function renderAfterEventTab(body, event, guests) {
+  const done = !!event.debriefedAt;
+  const edges = event.edges || [];
+  const sent = edges.filter(e => e.introSentAt).length;
+  const followUps = edges.reduce((n, e) => n + (e.followUpCount || 0), 0);
+  body.innerHTML = `
+    <div class="after-hero">
+      <div><p class="eyebrow">After the room</p><h2>Turn a good night into what happens next.</h2>
+      <p class="muted">Close the loop while the details are fresh. Villagers carries each open thread into the next guest brief and keeps the introductions moving.</p></div>
+      <div class="impact-mini"><strong>${sent}</strong><span>intros made</span><strong>${followUps}</strong><span>follow-ups logged</span></div>
+    </div>
+    <section class="after-section ${done ? "is-complete" : ""}">
+      <div class="section-kicker">01 · Debrief</div>
+      <div class="section-head"><div><h2>${done ? "Debrief closed" : "Did the win happen?"}</h2><p class="muted">Two minutes now makes the next event smarter.</p></div>${done ? '<span class="status-pill done">Closed</span>' : '<span class="status-pill">Open</span>'}</div>
+      <div class="debrief-grid">
+        <div class="debrief-card">
+          <label>Did the event deliver the win?</label>
+          <div class="win-choice">
+            <label><input type="radio" name="did-win" value="true" ${event.debriefWin === true ? "checked" : ""} ${done ? "disabled" : ""}/> Yes</label>
+            <label><input type="radio" name="did-win" value="false" ${event.debriefWin === false ? "checked" : ""} ${done ? "disabled" : ""}/> Not yet</label>
+          </div>
+          <label>What changed in the room?</label>
+          <textarea id="debrief-notes" rows="4" ${done ? "disabled" : ""} placeholder="The signal, surprise or next move worth remembering">${esc(event.debriefNotes || "")}</textarea>
+        </div>
+        <div class="debrief-card guest-loops">
+          <label>What got left open?</label>
+          <p class="field-help">Anything you enter becomes this person's live open loop and appears the next time they're on a guest list.</p>
+          ${guests.map(g => `<div class="loop-input"><span>${esc(g.name)}</span><input data-loop-person="${g.id}" value="${esc((intelFor(event,g.id).debriefOpenLoop || g.currentOpenLoop || ""))}" ${done ? "disabled" : ""} placeholder="Owed an intro, deck, answer or follow-up" /></div>`).join("") || '<p class="empty-state">Add guests before closing the debrief.</p>'}
+        </div>
+      </div>
+      ${!done ? '<button class="button" id="close-debrief" type="button">Close the debrief</button>' : `<p class="closed-note">Closed ${fmtTsDate(event.debriefedAt)}. These open loops now travel with each person.</p>`}
+    </section>
+    <section class="after-section">
+      <div class="section-kicker">02 · Intro follow-through</div>
+      <div class="section-head"><div><h2>Make the room keep working.</h2><p class="muted">Each connector tag becomes a ready-to-send introduction with the credible reason already named.</p></div></div>
+      <div class="intro-stack">
+        ${edges.map(edge => {
+          const a=personById(edge.aId), b=personById(edge.bId), draft=edge.introMessage || introDraft(event,edge);
+          if(!a || !b) return "";
+          return `<article class="intro-card ${edge.introSentAt ? "sent" : ""}" data-edge="${edge.id}">
+            <div class="intro-top"><div><div class="intro-pair">${esc(a.name)} <span>↔</span> ${esc(b.name)}</div><p>${esc(edge.basis)}</p></div>${edge.introSentAt ? '<span class="status-pill done">Sent</span>' : '<span class="status-pill">Ready</span>'}</div>
+            <textarea class="intro-draft" rows="5" ${edge.introSentAt ? "disabled" : ""}>${esc(draft)}</textarea>
+            <div class="intro-actions">
+              <button class="button small ghost" data-copy-intro="${edge.id}" type="button">Copy as text</button>
+              ${!edge.introSentAt ? `<button class="button small" data-mark-intro="${edge.id}" type="button">Mark sent</button>` : `<button class="button small ghost" data-followup="${edge.id}" type="button">${edge.followUpCount ? "Add another follow-up" : "Log a follow-up meeting"}</button><span class="follow-count">${edge.followUpCount || 0} logged</span>`}
+            </div>
+          </article>`;
+        }).join("") || '<p class="empty-state">Connector pairings will appear here as ready-to-send introductions.</p>'}
+      </div>
+    </section>`;
+
+  const close = document.getElementById("close-debrief");
+  if (close) close.addEventListener("click", async () => {
+    const picked = body.querySelector('input[name="did-win"]:checked');
+    if (!picked) { close.textContent = "Choose yes or not yet"; return; }
+    const loops = {}; body.querySelectorAll("[data-loop-person]").forEach(i => loops[i.dataset.loopPerson] = i.value);
+    close.disabled = true; close.textContent = "Closing...";
+    await dbSaveDebrief(event, picked.value === "true", document.getElementById("debrief-notes").value, loops);
+    await loadStoreFromDb(); renderEvent(event.id, "after");
+  });
+  body.querySelectorAll("[data-copy-intro]").forEach(btn => btn.addEventListener("click", async () => {
+    const card=btn.closest(".intro-card"), text=card.querySelector(".intro-draft").value;
+    await navigator.clipboard.writeText(text); btn.textContent="Copied";
+  }));
+  body.querySelectorAll("[data-mark-intro]").forEach(btn => btn.addEventListener("click", async () => {
+    const card=btn.closest(".intro-card"), text=card.querySelector(".intro-draft").value;
+    btn.disabled=true; await dbMarkIntroSent(btn.dataset.markIntro,text); await loadStoreFromDb(); renderEvent(event.id,"after");
+  }));
+  body.querySelectorAll("[data-followup]").forEach(btn => btn.addEventListener("click", async () => {
+    const edge=event.edges.find(e=>e.id===btn.dataset.followup); btn.disabled=true;
+    await dbLogFollowUp(edge.id,(edge.followUpCount||0)+1); await loadStoreFromDb(); renderEvent(event.id,"after");
+  }));
+       }
