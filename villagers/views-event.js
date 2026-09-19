@@ -310,7 +310,7 @@ function renderRsvpTab(body, event, guests) {
       <p class="muted">Send the RSVP link by text or email <strong>${hostLine}</strong> - guests
         experience it as coming directly from you, not from Villagers. Their responses save
         straight to your guest list and land here live, on any device.</p>
-      <p class="muted">Copy the link or the message and send it yourself - guests experience it as coming directly from you.</p>
+      <p class="muted">Copy the link or the message below and send it from your own number or email.</p>
     </div>
     <div class="rsvp-share">
       <label>RSVP link</label>
