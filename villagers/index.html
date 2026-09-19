@@ -11,12 +11,8 @@
 <body>
 
   <!--
-    Villagers (v3 - real backend)
-    Static front end backed by Supabase (Postgres + RLS): events, guests,
-    People records, intelligence and connectors sync across devices, RSVPs
-    route live, and the day-of digest emails itself from a database worker.
-    See the "What's real" view for the prototype/backend line.
-    Never commit a real guest list to this repo.
+    Villagers - see README.md for architecture and the honest
+    real-vs-stubbed list. Never commit a real guest list to this repo.
   -->
 
   <!-- Host gate: the pass phrase signs the host in (Supabase Auth). Guest
@@ -24,9 +20,9 @@
   <div id="gate" class="gate" hidden>
     <div class="gate-card">
       <div class="brand-mark">V</div>
-      <p class="eyebrow">Villagers · Work in progress</p>
+      <p class="eyebrow">Villagers · by Pallas Taylor</p>
       <h1>Walk in<br /><em>ready.</em></h1>
-      <p class="gate-note">This corner is under construction. Enter the pass phrase to look around.</p>
+      <p class="gate-note">Enter the host pass phrase to continue.</p>
       <input id="gate-input" type="password" placeholder="Pass phrase" autocomplete="off" />
       <button id="gate-button" class="button" type="button">Enter</button>
       <p id="gate-error" class="gate-error" hidden>Not quite - try again.</p>
@@ -41,7 +37,6 @@
     <nav class="nav">
       <a href="#/" data-nav="events">Events</a>
       <a href="#/people" data-nav="people">People</a>
-      <a href="#/real" data-nav="real">What's real</a>
     </nav>
   </header>
 
@@ -49,8 +44,7 @@
 
   <footer class="site-footer">
     <span>Villagers · Guest intelligence for hosts</span>
-    <span class="muted">A Pallas Taylor tool · work in progress</span>
-    <span class="muted">Synced through your Villagers backend. Never commit a real guest list here.</span>
+    <span class="muted">A Pallas Taylor tool</span>
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
