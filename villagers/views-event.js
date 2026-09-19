@@ -1,7 +1,7 @@
 /* ============================================================
    Villagers - Event dashboard
    Tabs: Guests (per-guest intelligence) · Connectors · Digest ·
-   RSVP · Settings. Depends on app.js (store, helpers, esc).
+   RSVP · Settings. Depends on app.js (store, db helpers, esc).
    ============================================================ */
 
 "use strict";
@@ -10,7 +10,9 @@
    One textable line per guest, in the spec's format:
    "Elena Rossi arriving 6:15 - vegetarian, ask about her Peru
    trip, avoid: her fund just passed on a deal you're close to.
-   Good intro: pair her with Maya, they overlap on Northline." */
+   Good intro: pair her with Maya, they overlap on Northline."
+   NOTE: the day-of email digest is generated in the database by
+   public.build_digest_text - keep this format and that one in sync. */
 function digestLine(event, person, forHtml) {
   const E = forHtml ? esc : (s) => s;
   const intel = intelFor(event, person.id);
@@ -154,25 +156,22 @@ function renderGuestsTab(body, event, guests) {
         const person = personById(pid);
         if (!person) return;
         const f = input.dataset.f;
-        if (f === "dietary") person.dietary = input.value.trim();
-        else if (f === "note") person.note = input.value.trim();
-        else intelFor(event, pid)[f] = input.value.trim();
-        saveStore();
+        const value = input.value.trim();
+        if (f === "dietary") { person.dietary = value; dbUpdatePersonGlobal(pid, "dietary", value); }
+        else if (f === "note") { person.note = value; dbUpdatePersonGlobal(pid, "note", value); }
+        else { intelFor(event, pid)[f] = value; dbUpdateIntel(event.id, pid, f, value); }
       });
     });
   });
 
-  body.querySelectorAll("[data-remove-guest]").forEach(btn => btn.addEventListener("click", () => {
-    const pid = btn.dataset.removeGuest;
-    event.guestIds = event.guestIds.filter(id => id !== pid);
-    delete event.intel[pid];
-    delete event.rsvp[pid];
-    event.edges = (event.edges || []).filter(ed => ed.aId !== pid && ed.bId !== pid);
-    saveStore();
+  body.querySelectorAll("[data-remove-guest]").forEach(btn => btn.addEventListener("click", async () => {
+    btn.disabled = true;
+    await dbRemoveGuest(event.id, btn.dataset.removeGuest);
+    await loadStoreFromDb();
     renderEvent(event.id, "guests");
   }));
 
-  document.getElementById("ag-add").addEventListener("click", () => {
+  document.getElementById("ag-add").addEventListener("click", async () => {
     const g = {
       name: document.getElementById("ag-name").value.trim(),
       role: document.getElementById("ag-role").value.trim(),
@@ -181,16 +180,23 @@ function renderGuestsTab(body, event, guests) {
       linkedin: document.getElementById("ag-linkedin").value.trim()
     };
     if (!g.name) return;
-    addGuestsToEvent(event, [g]);
+    const btn = document.getElementById("ag-add");
+    btn.disabled = true; btn.textContent = "Adding...";
+    await dbAddGuests(event, [g]);
+    await loadStoreFromDb();
     renderEvent(event.id, "guests");
   });
 
-  document.getElementById("ag-import").addEventListener("click", () => {
+  document.getElementById("ag-import").addEventListener("click", async () => {
     const guests = parseGuestText(document.getElementById("ag-paste").value);
     if (!guests.length) return;
-    const stats = addGuestsToEvent(event, guests);
+    const btn = document.getElementById("ag-import");
+    btn.disabled = true; btn.textContent = "Importing...";
+    const stats = await dbAddGuests(event, guests);
+    await loadStoreFromDb();
     renderEvent(event.id, "guests");
     const el = document.getElementById("ag-result");
+    if (el) el.textContent = `${stats.added} new · ${stats.returning} returning · ${stats.duplicates} already on the list`;
   });
 }
 
@@ -241,20 +247,22 @@ function renderConnectorsTab(body, event, guests) {
       </div>
     </div>` : `<p class="muted" style="margin-top:18px">Add at least two guests to tag pairings.</p>`}`;
 
-  body.querySelectorAll("[data-del-edge]").forEach(btn => btn.addEventListener("click", () => {
-    event.edges = (event.edges || []).filter(ed => ed.id !== btn.dataset.delEdge);
-    saveStore();
+  body.querySelectorAll("[data-del-edge]").forEach(btn => btn.addEventListener("click", async () => {
+    btn.disabled = true;
+    await dbDelEdge(btn.dataset.delEdge);
+    await loadStoreFromDb();
     renderEvent(event.id, "connectors");
   }));
 
   const addBtn = document.getElementById("edge-add");
-  if (addBtn) addBtn.addEventListener("click", () => {
+  if (addBtn) addBtn.addEventListener("click", async () => {
     const aId = document.getElementById("edge-a").value;
     const bId = document.getElementById("edge-b").value;
     const basis = document.getElementById("edge-basis").value.trim();
     if (!aId || !bId || aId === bId || !basis) return;
-    event.edges.push({ id: uid("x"), aId, bId, basis });
-    saveStore();
+    addBtn.disabled = true;
+    await dbAddEdge(event.id, aId, bId, basis);
+    await loadStoreFromDb();
     renderEvent(event.id, "connectors");
   });
 }
@@ -266,12 +274,15 @@ function renderDigestTab(body, event, guests) {
   const sendAt = digestTime(event);
   const lines = pool.map(g => digestLine(event, g, true));
   const plainLines = pool.map(g => digestLine(event, g, false));
+  const digestTo = (currentHost && currentHost.digest_email) || "the host's email";
   body.innerHTML = `
     <div class="tab-intro">
-      <p class="muted">An hour before doors, the host gets this as a text - a few lines per guest,
+      <p class="muted">An hour before doors, the host gets this as an email - a few lines per guest,
         no dashboard to remember to open. Timing is configurable per event in Settings
         (currently ${event.digestMinutes || 60} minutes before doors${sendAt ? ", lands around " + fmtTime(sendAt) : ""}).</p>
-      <p class="muted">Actually texting it to the host ${backendNote("needs the backend")} - this is the rendered preview.</p>
+      <p class="muted">This one is real: the digest generates and emails itself to
+        <strong>${esc(digestTo)}</strong> at the configured time. Delivery as a text message
+        ${backendNote("needs a paid SMS provider")} - the email rail is the free first step.</p>
     </div>
     <div class="digest-preview">
       <div class="digest-meta">Villagers · day-of digest${event.date ? " · " + fmtDate(event.date) : ""}${sendAt ? " · sends ~" + fmtTime(sendAt) : ""}</div>
@@ -296,23 +307,23 @@ function renderDigestTab(body, event, guests) {
 
 /* ---------- RSVP tab: the link and the responses ---------- */
 function renderRsvpTab(body, event, guests) {
-  const link = location.origin + location.pathname + "#/rsvp/" + event.id;
+  const link = location.origin + location.pathname + "#/rsvp/" + event.rsvpToken;
   const entries = Object.entries(event.rsvp || {}).map(([pid, r]) => ({ person: personById(pid), r })).filter(x => x.person);
   const hostLine = event.hostName ? `from ${event.hostName}` : "from the host";
   body.innerHTML = `
     <div class="tab-intro">
       <p class="muted">Send the RSVP link by text or email <strong>${hostLine}</strong> - guests
-        experience it as coming directly from you, not from Villagers. Responses route back here
-        either way.</p>
-      <p class="muted">Prototype: copy the link and send it yourself; responses save in this
-        browser. Sending from your own number/email automatically ${backendNote("needs the backend")}.</p>
+        experience it as coming directly from you, not from Villagers. Their responses save
+        straight to your Villagers backend and land here live, on any device.</p>
+      <p class="muted">Sending the invite itself from your own number/email automatically
+        ${backendNote("needs the backend")} - for now you copy the link or the message and send it yourself.</p>
     </div>
     <div class="rsvp-share">
       <label>RSVP link</label>
       <div class="rsvp-link-row">
         <input id="rsvp-link" readonly value="${esc(link)}" />
         <button class="button small" id="rsvp-copy" type="button">Copy</button>
-        <a class="button small ghost" href="#/rsvp/${event.id}">Preview the guest page</a>
+        <a class="button small ghost" href="#/rsvp/${event.rsvpToken}">Preview the guest page</a>
       </div>
       <label>Message the host sends</label>
       <div class="invite-preview" id="invite-preview">${esc(`You're invited - ${event.name.replace(/ \(sample\)$/, "")}, ${fmtDate(event.date)}${event.location ? " at " + event.location : ""}. Doors ${fmtTime(event.doorsTime)}. Can you make it? RSVP here: `)}<span class="muted">[link]</span></div>
@@ -370,23 +381,28 @@ function renderSettingsTab(body, event) {
       <button class="button subtle" id="delete-event" type="button">Delete this event</button>
     </form>`;
 
-  document.getElementById("settings-form").addEventListener("submit", (ev) => {
+  document.getElementById("settings-form").addEventListener("submit", async (ev) => {
     ev.preventDefault();
-    event.name = document.getElementById("s-name").value.trim() || event.name;
-    event.date = document.getElementById("s-date").value;
-    event.doorsTime = document.getElementById("s-doors").value;
-    event.location = document.getElementById("s-location").value.trim();
-    event.hostName = document.getElementById("s-host").value.trim();
-    event.win = document.getElementById("s-win").value.trim();
-    event.digestMinutes = Math.max(0, parseInt(document.getElementById("s-digest").value, 10) || 60);
-    saveStore();
+    const f = {
+      name: document.getElementById("s-name").value.trim() || event.name,
+      date: document.getElementById("s-date").value,
+      doorsTime: document.getElementById("s-doors").value,
+      location: document.getElementById("s-location").value.trim(),
+      hostName: document.getElementById("s-host").value.trim(),
+      win: document.getElementById("s-win").value.trim(),
+      digestMinutes: Math.max(0, parseInt(document.getElementById("s-digest").value, 10) || 60)
+    };
+    const btn = ev.target.querySelector("button[type=submit]");
+    btn.disabled = true; btn.textContent = "Saving...";
+    await dbSaveEventSettings(event, f);
+    await loadStoreFromDb();
     renderEvent(event.id, "settings");
   });
 
-  document.getElementById("delete-event").addEventListener("click", () => {
+  document.getElementById("delete-event").addEventListener("click", async () => {
     if (!confirm("Delete this event? People records stay in your directory.")) return;
-    store.events = store.events.filter(e => e.id !== event.id);
-    saveStore();
+    await dbDeleteEvent(event.id);
+    await loadStoreFromDb();
     location.hash = "#/";
   });
-                                                                                                                                         }
+}
