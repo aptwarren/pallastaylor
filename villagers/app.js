@@ -645,6 +645,9 @@ function route() {
 function subscribeRealtime() {
   sb.channel("event-guest-changes")
     .on("postgres_changes", { event: "*", schema: "public", table: "event_guests" }, async () => {
+      /* A signed-in host previewing the guest RSVP page stays put -
+         the re-render would wipe the guest's confirmation state. */
+      if ((location.hash || "").startsWith("#/rsvp/")) return;
       await loadStoreFromDb();
       const active = document.activeElement;
       const editing = active && (active.tagName === "INPUT" || active.tagName === "TEXTAREA" || active.tagName === "SELECT");
