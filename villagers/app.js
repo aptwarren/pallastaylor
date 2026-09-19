@@ -231,60 +231,6 @@ async function dbClearSamples() {
   }
 }
 
-async function dbInsertSample() {
-  /* The fictional salon dinner from the product spec, written to the
-     database through the same paths real data uses. */
-  const mk = (name, extra) => Object.assign({
-    id: crypto.randomUUID(), name, role: "", company: "", email: "",
-    linkedin: "", context: "", contextSuggested: false, dietary: "", vip: false
-  }, extra || {});
-  const maya = mk("Maya Chen", { role: "Partner", company: "Northline Ventures", context: "Leads consumer investments at Northline. Writes the firm's LP letter.", contextSuggested: true, vip: true });
-  const elena = mk("Elena Rossi", { role: "Principal", company: "Northline Ventures", context: "Maya's colleague at Northline. Just back from a month in Peru.", contextSuggested: true, dietary: "Vegetarian" });
-  const priya = mk("Priya Raman", { role: "Head of Platform", company: "Alloy Capital", context: "Runs founder programming at Alloy. Potential collaborator on events.", contextSuggested: true });
-  const sam = mk("Sam Whitfield", { role: "LP Relations", company: "Harborview", context: "Quiet. Prefers intros over mingling." });
-  const june = mk("June Park", { role: "Chief of Staff", company: "Alloy Capital", context: "Priya's chief of staff. Gatekeeper in the good sense." });
-  const alex = mk("Alex Moreau", { role: "Angel Investor", context: "Writes small early checks. Big on hospitality.", vip: true });
-  const people = [maya, elena, priya, sam, june, alex];
-
-  const eventId = crypto.randomUUID();
-  const starts_at = zonedToUtcIso("2026-10-02", "18:15", hostTz());
-  const { error: eErr } = await sb.from("events").insert({
-    id: eventId, host_id: currentHost.id, title: "Fall Salon Dinner (sample)",
-    template_id: "salon", starts_at, location: "Tribeca", sample: true,
-    host_name: currentHost.name, digest_lead_minutes: 60,
-    win: "Eight seats. Mix two LPs with four founders and two platform leads; every guest leaves with one warm intro."
-  });
-  if (eErr) { console.error(eErr); return; }
-  for (const p of people) {
-    await sb.from("people").insert({
-      id: p.id, full_name: p.name, role: p.role || null, company: p.company || null,
-      public_context: p.context || null, context_suggested: p.contextSuggested
-    });
-    await sb.from("host_people").insert({
-      host_id: currentHost.id, person_id: p.id, dietary: p.dietary || null, vip: p.vip
-    });
-  }
-  const intel = {};
-  intel[elena.id] = { arrival_time: "18:15", ask: "ask about her Peru trip", avoid: "her fund just passed on a deal you're close to", open_loop: "she said she'd send the Northline deck", rsvp_status: "yes", dietary: "Vegetarian", responded: true };
-  intel[maya.id] = { arrival_time: "18:10", ask: "say thank you - she vouched for you with two LPs", open_loop: "she asked about your Series B timeline", rsvp_status: "yes", responded: true };
-  intel[priya.id] = { ask: "pure relationship maintenance", avoid: "Alloy's layoffs last month", rsvp_status: "yes", responded: true };
-  intel[sam.id] = { arrival_time: "18:20", ask: "make sure he leaves with one founder intro", rsvp_status: "yes", responded: true };
-  intel[june.id] = { rsvp_status: "maybe", responded: true };
-  intel[alex.id] = { rsvp_status: "yes", responded: true };
-  for (const p of people) {
-    const i = intel[p.id];
-    await sb.from("event_guests").insert({
-      event_id: eventId, person_id: p.id, rsvp_status: i.rsvp_status,
-      arrival_time: i.arrival_time || null, ask: i.ask || null, avoid: i.avoid || null,
-      open_loop: i.open_loop || null, dietary: i.dietary || null,
-      responded_at: i.responded ? new Date().toISOString() : null
-    });
-  }
-  await sb.from("connectors").insert([
-    { event_id: eventId, person_a_id: elena.id, person_b_id: maya.id, basis: "they overlap on Northline" },
-    { event_id: eventId, person_a_id: sam.id, person_b_id: alex.id, basis: "he asked for a warm intro to active angels" }
-  ]);
-}
 
 /* ---------- model helpers (operate on the mirror) ---------- */
 function uid(prefix) {
@@ -485,17 +431,12 @@ function returningBadge(person, currentEventId) {
   return `<div class="guest-memory">Met before: ${names}</div>`;
 }
 
-function backendNote(text) {
-  return `<span class="backend-note" title="Needs the real backend">${esc(text)}</span>`;
-}
-
 /* ============================================================
    View: Events (home)
    ============================================================ */
 function renderEvents() {
   setNav("events");
   const events = store.events.slice().sort((a, b) => (b.date || "").localeCompare(a.date || ""));
-  const hasSamples = events.some(e => e.sample);
   app.innerHTML = `
     <section class="hero">
       <p class="eyebrow">Villagers · by Pallas Taylor</p>
@@ -538,7 +479,7 @@ function renderEvents() {
         </div>
         <label for="ev-guests">Guest list (optional - paste now, import later)</label>
         <textarea id="ev-guests" placeholder="Names, one per line - or a CSV with columns like name, role, company, email, linkedin."></textarea>
-        <p class="field-note">The list saves to your Villagers backend - it syncs across your phone and laptop. Never paste a real list into the repo itself.</p>
+        <p class="field-note">The list saves securely and syncs across your phone and laptop.</p>
         <button class="button" type="submit">Create the event</button>
       </form>
     </section>
@@ -546,7 +487,7 @@ function renderEvents() {
     <section class="section">
       <div class="section-head">
         <h2>Your events</h2>
-        ${hasSamples ? `<button class="button subtle small" id="clear-samples">Clear sample data</button>` : ""}
+        
       </div>
       <div class="event-list">
         ${events.length ? events.map(e => {
@@ -554,13 +495,12 @@ function renderEvents() {
           const yesCount = Object.values(e.rsvp || {}).filter(r => r.status === "yes").length;
           return `
           <div class="event-tile" data-open-event="${e.id}">
-            <span class="tile-date">${fmtDate(e.date)}${e.sample ? ' · <span class="tile-sample">sample</span>' : ""}</span>
+            <span class="tile-date">${fmtDate(e.date)}</span>
             <h3>${esc(e.name)}</h3>
             <span class="tile-meta">${e.guestIds.length} guest${e.guestIds.length === 1 ? "" : "s"}${yesCount ? " · " + yesCount + " confirmed" : ""}${e.location ? " · " + esc(e.location) : ""}</span>
             ${returning ? `<span class="tile-returning">${returning} returning guest${returning === 1 ? "" : "s"} remembered</span>` : ""}
           </div>`;
-        }).join("") : `<p class="empty-state">No events yet. Pick a template above and Villagers sets up the rest.</p>
-        <p><button class="button ghost small" id="load-sample" type="button">See it with the sample salon dinner</button></p>`}
+        }).join("") : `<p class="empty-state">No events yet. Pick a template above and Villagers sets up the rest.</p>`}
       </div>
     </section>`;
 
@@ -603,22 +543,6 @@ function renderEvents() {
     }
   });
 
-  const clearBtn = document.getElementById("clear-samples");
-  if (clearBtn) clearBtn.addEventListener("click", async () => {
-    clearBtn.disabled = true;
-    await dbClearSamples();
-    await loadStoreFromDb();
-    renderEvents();
-  });
-
-  const sampleBtn = document.getElementById("load-sample");
-  if (sampleBtn) sampleBtn.addEventListener("click", async () => {
-    sampleBtn.disabled = true; sampleBtn.textContent = "Loading...";
-    await dbInsertSample();
-    await loadStoreFromDb();
-    renderEvents();
-  });
-
   document.querySelectorAll("[data-open-event]").forEach(tile => tile.addEventListener("click", () => {
     location.hash = "#/event/" + tile.dataset.openEvent;
   }));
@@ -635,7 +559,6 @@ function route() {
   if (!storeLoaded) { location.hash = "#/"; return; }
   if (parts[0] === "event" && parts[1]) return renderEvent(parts[1], parts[2] || "guests");
   if (parts[0] === "people") return renderPeople();
-  if (parts[0] === "real") return renderReal();
   return renderEvents();
 }
 
