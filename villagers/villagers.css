@@ -175,3 +175,6 @@ label { display: block; font-size: 11px; font-weight: 750; letter-spacing: .12em
   .search-box { margin-left: 0; max-width: none; }
   .people-table th:nth-child(3), .people-table td:nth-child(3) { display: none; }
 }
+
+/* the `hidden` attribute loses to `display: grid` above - restore it */
+.gate[hidden] { display: none; }
