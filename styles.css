@@ -167,3 +167,11 @@ footer p:last-child { text-align: right; }
   #mobile-menu a:last-child { border-bottom: 0; color: var(--plum); font-weight: 700; }
   #mobile-menu a:hover { color: var(--violet); }
 }
+
+/* Legal pages */
+.legal-hero { max-width: 900px; padding-bottom: 2.5rem; }
+.legal-copy { max-width: 760px; margin: 0 auto; padding: 0 2rem 7rem; }
+.legal-copy h2 { font-family: var(--font-display); font-size: clamp(1.45rem, 2.6vw, 2rem); font-weight: 400; margin: 2.5rem 0 .65rem; }
+.legal-copy p { color: var(--ink-soft); line-height: 1.75; margin: 0; }
+.legal-copy a, .site-footer a { color: inherit; text-underline-offset: 3px; }
+@media (max-width: 700px) { .legal-copy { padding: 0 1.25rem 5rem; } }
