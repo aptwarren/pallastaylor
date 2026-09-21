@@ -603,9 +603,20 @@ async function enterRoom() {
   app.innerHTML = `<section class="hero"><p class="lede">Opening the room...</p></section>`;
   const ok = await loadStoreFromDb();
   if (!ok) {
-    app.innerHTML = `<section class="hero"><p class="lede">Could not open your Villagers room. Refresh to try again.</p></section>`;
+    /* Stale or unauthorized session dead end: sign out and reload so the
+       host lands back on the email gate instead of a page with no input.
+       The retry flag stops a reload loop if the failure is not session-related. */
+    await sb.auth.signOut();
+    if (sessionStorage.getItem("vg_gate_retry")) {
+      sessionStorage.removeItem("vg_gate_retry");
+      app.innerHTML = `<section class="hero"><p class="lede">Could not open your Villagers room. <a href="./">Sign in again</a>.</p></section>`;
+    } else {
+      sessionStorage.setItem("vg_gate_retry", "1");
+      location.reload();
+    }
     return;
   }
+  sessionStorage.removeItem("vg_gate_retry");
   subscribeRealtime();
   route();
 }
