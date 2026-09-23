@@ -78,6 +78,7 @@ async function loadStoreFromDb() {
       hostName: e.host_name || currentHost.name || "",
       digestMinutes: e.digest_lead_minutes, sample: !!e.sample,
       rsvpToken: e.rsvp_public_token,
+      lumaUrl: e.luma_url || "", lumaStatus: e.luma_status || "", lumaError: e.luma_error || "",
       debriefWin: e.debrief_win, debriefNotes: e.debrief_notes || "", debriefedAt: e.debriefed_at,
       guestIds: [], rsvp: {}, intel: {}, edges: []
     };
@@ -158,6 +159,14 @@ async function dbCreateEvent(fields) {
   }).select("id").single();
   if (error) { console.error("event insert", error); return null; }
   return data.id;
+}
+
+/* Luma: the database creates the real Luma event page and stores its link.
+   The API key never leaves the database (see supabase/20260923_luma_integration.sql). */
+async function dbCreateLumaEvent(eventId) {
+  const { data, error } = await sb.rpc("create_luma_event", { p_event_id: eventId, p_timezone: hostTz() });
+  if (error) { console.error("luma create", error); return { ok: false, error: error.message }; }
+  return data || { ok: false };
 }
 
 async function dbSaveEventSettings(event, f) {
@@ -553,6 +562,8 @@ function renderEvents() {
     if (eventId) {
       const pasted = parseGuestText(document.getElementById("ev-guests").value);
       if (pasted.length) await dbAddGuests({ id: eventId, guestIds: [] }, pasted);
+      btn.textContent = "Setting up the Luma page...";
+      await dbCreateLumaEvent(eventId);
       await loadStoreFromDb();
       location.hash = "#/event/" + eventId;
     } else {
