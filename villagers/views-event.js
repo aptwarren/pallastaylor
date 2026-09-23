@@ -304,6 +304,22 @@ function renderDigestTab(body, event, guests) {
 /* ---------- RSVP tab: the link and the responses ---------- */
 function renderRsvpTab(body, event, guests) {
   const link = location.origin + location.pathname + "#/rsvp/" + event.rsvpToken;
+  const lumaBlock = event.sample ? "" : `
+    <div class="rsvp-share luma-share">
+      <label>Luma event page</label>
+      ${event.lumaUrl ? `
+      <div class="rsvp-link-row">
+        <input id="luma-link" readonly value="${esc(event.lumaUrl)}" />
+        <button class="button small" id="luma-copy" type="button">Copy</button>
+        <a class="button small ghost" href="${esc(event.lumaUrl)}" target="_blank" rel="noopener">Open in Luma</a>
+      </div>
+      <p class="muted">The public page Luma hosts for this event - share that link with guests. Villagers keeps the intelligence and the digest on top.</p>`
+      : event.lumaStatus === "pending" ? `
+      <p class="muted">Creating the Luma page - it lands here in a few seconds. Reload the tab to check.</p>`
+      : `
+      ${event.lumaStatus === "failed" ? `<p class="muted">The Luma page didn't get created${event.lumaError ? " - " + esc(event.lumaError) : ""}.</p>` : `<p class="muted">No Luma page for this event yet.</p>`}
+      <button class="button small" id="luma-create" type="button">${event.lumaStatus === "failed" ? "Try again" : "Create the Luma page"}</button>`}
+    </div>`;
   const entries = Object.entries(event.rsvp || {}).map(([pid, r]) => ({ person: personById(pid), r })).filter(x => x.person);
   const hostLine = event.hostName ? `from ${event.hostName}` : "from the host";
   body.innerHTML = `
@@ -313,8 +329,9 @@ function renderRsvpTab(body, event, guests) {
         straight to your guest list and land here live, on any device.</p>
       <p class="muted">Copy the link or the message below and send it from your own number or email.</p>
     </div>
+    ${lumaBlock}
     <div class="rsvp-share">
-      <label>RSVP link</label>
+      <label>Villagers RSVP link</label>
       <div class="rsvp-link-row">
         <input id="rsvp-link" readonly value="${esc(link)}" />
         <button class="button small" id="rsvp-copy" type="button">Copy</button>
@@ -345,6 +362,17 @@ function renderRsvpTab(body, event, guests) {
   document.getElementById("invite-copy").addEventListener("click", async () => {
     const msg = `You're invited - ${event.name.replace(/ \(sample\)$/, "")}, ${fmtDate(event.date)}${event.location ? " at " + event.location : ""}. Doors ${fmtTime(event.doorsTime)}. Can you make it? RSVP here: ${link}`;
     try { await navigator.clipboard.writeText(msg); document.getElementById("invite-copy").textContent = "Copied"; } catch (e) {}
+  });
+  const lumaCopy = document.getElementById("luma-copy");
+  if (lumaCopy) lumaCopy.addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText(event.lumaUrl); lumaCopy.textContent = "Copied"; } catch (e) {}
+  });
+  const lumaCreate = document.getElementById("luma-create");
+  if (lumaCreate) lumaCreate.addEventListener("click", async () => {
+    lumaCreate.disabled = true; lumaCreate.textContent = "Creating...";
+    await dbCreateLumaEvent(event.id);
+    await loadStoreFromDb();
+    renderEvent(event.id, "rsvp");
   });
 }
 
