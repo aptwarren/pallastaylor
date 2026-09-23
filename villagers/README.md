@@ -40,6 +40,13 @@ visible in git history, but its Supabase password has been rotated and it no lon
   rows in `digest_deliveries` are rendered by `build_digest_text()` and emailed
   via `pg_net` through the email provider's API (key lives in the `app_config`
   table, which has RLS enabled and no read policies).
+- **Luma event pages**: creating an event also creates a real Luma event page
+  through the Luma API. The database RPC `create_luma_event` calls Luma via
+  `pg_net` (key in `app_config` as `luma_api_key`, never sent to the client),
+  stores the Luma link on the event, and a `pg_cron` sweeper
+  (`reconcile_luma_events`) finishes any call that outlives one request. The
+  link shows on the event's RSVP tab, with a retry if Luma ever says no.
+  Migration: `supabase/20260923_luma_integration.sql`.
 - The front end talks to Supabase with the public anon key in `config.js` -
   safe to commit because every table is behind RLS; the host signs in with a private email magic link (Supabase Auth), guests only
   ever reach the RSVP RPCs. Canonical person creation runs through the
@@ -52,11 +59,14 @@ copy were removed from the client-facing app - this README is now the one place
 that line is drawn.)
 
 - **Real:** persistence + phone/laptop sync, live RSVP routing, the digest
-  emailing itself at T-60, the full People/intelligence/connector layer.
+  emailing itself at T-60, the full People/intelligence/connector layer,
+  Luma event-page creation from the new-event flow.
 - **Still ahead:** sending from the host's own email domain (needs a DNS
   verification step), SMS digest delivery (paid provider - deliberately not
   bought), LinkedIn/public-data auto-pull, automatic connector matching,
-  automatic per-host provisioning beyond the current approved host.
+  automatic per-host provisioning beyond the current approved host, syncing
+  Luma RSVPs back into the guest list, and pushing later event edits
+  (title/time/location) through to Luma.
 - **Post-event loop:** the After view, debrief state, carried-forward People open loops, intro send records, and follow-up tallies are backed by live columns on `events`, `event_guests`, `host_people`, and `connectors`. Drafts are copied for the host to send from their own channel; Villagers records the host's sent/follow-up marks, it does not send messages itself.
 - **Never commit a real guest list here.** Guest data lives in the database,
   not the repo.
