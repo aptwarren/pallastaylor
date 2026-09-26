@@ -48,13 +48,19 @@ async function loadStoreFromDb() {
   const { data: hosts, error: hErr } = await sb.from("hosts").select("*").limit(1);
   if (hErr || !hosts || !hosts.length) { console.error("host load", hErr); return false; }
   currentHost = hosts[0];
-  const [ppl, hp, evs, guests, edges] = await Promise.all([
+  const [ppl, hp, evs, guests, edges, notes, fups, texters] = await Promise.all([
     sb.from("people").select("*"),
     sb.from("host_people").select("*").eq("host_id", currentHost.id),
     sb.from("events").select("*").order("starts_at", { ascending: false }),
     sb.from("event_guests").select("*"),
-    sb.from("connectors").select("*")
+    sb.from("connectors").select("*"),
+    sb.from("event_notes").select("*").order("received_at", { ascending: false }),
+    sb.from("follow_ups").select("*").order("created_at", { ascending: false }),
+    sb.from("host_texters").select("*")
   ]);
+  store.notes = notes.data || [];
+  store.followUps = fups.data || [];
+  store.texters = texters.data || [];
   const overlay = {};
   (hp.data || []).forEach(r => { overlay[r.person_id] = r; });
   store.people = (ppl.data || []).map(p => {
@@ -244,6 +250,32 @@ async function dbLogFollowUp(edgeId, count) {
   }).eq("id", edgeId);
 }
 
+/* Text-in notes: texters, note filing, follow-ups. */
+async function dbAddTexter(phone, label) {
+  const { error } = await sb.from("host_texters").insert({
+    host_id: currentHost.id, phone: phone.trim(), label: (label || "").trim() || null
+  });
+  if (error) { console.error("texter add", error); return { ok: false, error: error.message }; }
+  return { ok: true };
+}
+
+async function dbRemoveTexter(id) {
+  await sb.from("host_texters").delete().eq("id", id);
+}
+
+async function dbResolveNote(noteId, personId) {
+  const { data, error } = await sb.rpc("resolve_note_match", { p_note_id: noteId, p_person_id: personId });
+  if (error) { console.error("note resolve", error); return { ok: false, error: error.message }; }
+  return data || { ok: false };
+}
+
+async function dbSetFollowUpDone(id, done) {
+  await sb.from("follow_ups").update({
+    status: done ? "done" : "open",
+    done_at: done ? new Date().toISOString() : null
+  }).eq("id", id);
+}
+
 async function dbClearSamples() {
   await sb.from("events").delete().eq("sample", true);
   /* Drop host_people rows for people no longer on any event, so the
@@ -301,26 +333,34 @@ function edgesFor(event, personId) {
   return (event.edges || []).filter(ed => ed.aId === personId || ed.bId === personId);
 }
 
+/* Text-in notes lookups. */
+function notesFor(eventId) { return (store.notes || []).filter(n => n.event_id === eventId); }
+function followUpsFor(eventId) { return (store.followUps || []).filter(f => f.event_id === eventId); }
+function texterLabel(note) {
+  const t = (store.texters || []).find(x => x.id === note.texter_id);
+  return t ? (t.label || t.phone) : note.from_number;
+}
+
 /* ---------- event templates ---------- */
 const TEMPLATES = [
   {
     id: "breakfast",
     name: "Investor Breakfast",
-    tag: "Morning · seated · 8-10",
+    tag: "Morning Â· seated Â· 8-10",
     blurb: "Coffee, one long table, everyone out by 10. Quiet room, direct conversations.",
     defaults: { doorsTime: "08:30", digestMinutes: 60, win: "Every founder leaves with one warm intro." }
   },
   {
     id: "happyhour",
     name: "Happy Hour",
-    tag: "Evening · standing · 15-30",
+    tag: "Evening Â· standing Â· 15-30",
     blurb: "Drinks and a loose room. The host works the edges; pairings do the heavy lifting.",
     defaults: { doorsTime: "17:30", digestMinutes: 45, win: "Two portfolio intros and one LP relationship moved forward." }
   },
   {
     id: "salon",
     name: "Salon Dinner",
-    tag: "Evening · seated · 8-12",
+    tag: "Evening Â· seated Â· 8-12",
     blurb: "A set table, a seating plan, one conversation. The highest-touch format.",
     defaults: { doorsTime: "18:15", digestMinutes: 60, win: "Every guest leaves with one warm intro." }
   },
@@ -465,7 +505,7 @@ function renderEvents() {
   const events = store.events.slice().sort((a, b) => (b.date || "").localeCompare(a.date || ""));
   app.innerHTML = `
     <section class="hero">
-      <p class="eyebrow">Villagers · by Pallas Taylor</p>
+      <p class="eyebrow">Villagers Â· by Pallas Taylor</p>
       <h1>Know the room<br />before you're <em>in it.</em></h1>
       <p class="lede">Guest list in, intelligence out. Villagers keeps a standing record of
         everyone you've ever hosted, arms you with the ask, the avoid list and the open
@@ -480,7 +520,7 @@ function renderEvents() {
             <span class="template-tag">${esc(t.tag)}</span>
             <h3>${esc(t.name)}</h3>
             <p>${esc(t.blurb)}</p>
-            <span class="template-go">Use this template →</span>
+            <span class="template-go">Use this template â</span>
           </button>`).join("")}
       </div>
       <form class="new-event" id="new-event-form" hidden>
@@ -523,7 +563,7 @@ function renderEvents() {
           <div class="event-tile" data-open-event="${e.id}">
             <span class="tile-date">${fmtDate(e.date)}</span>
             <h3>${esc(e.name)}</h3>
-            <span class="tile-meta">${e.guestIds.length} guest${e.guestIds.length === 1 ? "" : "s"}${yesCount ? " · " + yesCount + " confirmed" : ""}${e.location ? " · " + esc(e.location) : ""}</span>
+            <span class="tile-meta">${e.guestIds.length} guest${e.guestIds.length === 1 ? "" : "s"}${yesCount ? " Â· " + yesCount + " confirmed" : ""}${e.location ? " Â· " + esc(e.location) : ""}</span>
             ${returning ? `<span class="tile-returning">${returning} returning guest${returning === 1 ? "" : "s"} remembered</span>` : ""}
           </div>`;
         }).join("") : `<p class="empty-state">No events yet. Pick a template above and Villagers sets up the rest.</p>`}
@@ -535,7 +575,7 @@ function renderEvents() {
     pendingTemplate = TEMPLATES.find(t => t.id === btn.dataset.template);
     const form = document.getElementById("new-event-form");
     form.hidden = false;
-    document.getElementById("ne-eyebrow").textContent = "New event · " + pendingTemplate.name;
+    document.getElementById("ne-eyebrow").textContent = "New event Â· " + pendingTemplate.name;
     document.getElementById("ev-doors").value = pendingTemplate.defaults.doorsTime;
     document.getElementById("ev-win").value = pendingTemplate.defaults.win;
     document.getElementById("ev-name").focus();
