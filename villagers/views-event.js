@@ -1,7 +1,7 @@
 /* ============================================================
    Villagers - Event dashboard
-   Tabs: Guests (per-guest intelligence) · Connectors · Digest ·
-   RSVP · Settings. Depends on app.js (store, db helpers, esc).
+   Tabs: Guests (per-guest intelligence) Â· Connectors Â· Digest Â·
+   RSVP Â· Settings. Depends on app.js (store, db helpers, esc).
    ============================================================ */
 
 "use strict";
@@ -47,7 +47,7 @@ function renderEvent(eventId, tab) {
   setNav("events");
   const guests = event.guestIds.map(personById).filter(Boolean);
   const yesGuests = guests.filter(g => (event.rsvp[g.id] || {}).status === "yes");
-  const tabs = [["guests", "Guests"], ["connectors", "Connectors"], ["digest", "Digest"], ["rsvp", "RSVP"], ["after", "After"], ["settings", "Settings"]];
+  const tabs = [["guests", "Guests"], ["connectors", "Connectors"], ["digest", "Digest"], ["notes", "Notes"], ["rsvp", "RSVP"], ["after", "After"], ["settings", "Settings"]];
 
   app.innerHTML = `
     <section class="book-head">
@@ -55,7 +55,7 @@ function renderEvent(eventId, tab) {
       <div class="book-title-row">
         <h1>${esc(event.name.replace(/ \(sample\)$/, ""))}</h1>
       </div>
-      <p class="book-goal">${fmtDate(event.date)}${event.doorsTime ? " · doors " + fmtTime(event.doorsTime) : ""}${event.location ? " · " + esc(event.location) : ""}
+      <p class="book-goal">${fmtDate(event.date)}${event.doorsTime ? " Â· doors " + fmtTime(event.doorsTime) : ""}${event.location ? " Â· " + esc(event.location) : ""}
         ${event.win ? `<br /><strong>The win:</strong> ${esc(event.win)}` : ""}</p>
       <div class="summary-strip">
         <div class="stat"><b>${guests.length}</b><span>On the list</span></div>
@@ -73,6 +73,7 @@ function renderEvent(eventId, tab) {
   if (tab === "after") renderAfterEventTab(body, event, guests);
   else if (tab === "connectors") renderConnectorsTab(body, event, guests);
   else if (tab === "digest") renderDigestTab(body, event, guests);
+  else if (tab === "notes") renderNotesTab(body, event, guests);
   else if (tab === "rsvp") renderRsvpTab(body, event, guests);
   else if (tab === "settings") renderSettingsTab(body, event);
   else renderGuestsTab(body, event, guests);
@@ -95,19 +96,19 @@ function renderGuestsTab(body, event, guests) {
         <div class="guest-card ${eventsFor(g.id).length > 1 ? "returning" : ""}">
           ${avatarHtml(g)}
           <div class="guest-name">${esc(g.name)}</div>
-          <div class="guest-role">${esc([g.role, g.company].filter(Boolean).join(" · ")) || "Role TBD"}</div>
+          <div class="guest-role">${esc([g.role, g.company].filter(Boolean).join(" Â· ")) || "Role TBD"}</div>
           ${rsvp ? `<div class="guest-flags"><span class="flag ${rsvp.status === "yes" ? "on" : ""}">${rsvp.status === "yes" ? "Confirmed" : esc(rsvp.status)}</span>${g.flags.vip ? '<span class="flag vip on">VIP</span>' : ""}</div>` : (g.flags.vip ? '<div class="guest-flags"><span class="flag vip on">VIP</span></div>' : "")}
-          ${g.context ? `<div class="guest-context">${esc(g.context)}${g.contextSuggested ? ' <span class="suggest-chip">suggested · editable</span>' : ""}</div>` : ""}
+          ${g.context ? `<div class="guest-context">${esc(g.context)}${g.contextSuggested ? ' <span class="suggest-chip">suggested Â· editable</span>' : ""}</div>` : ""}
           ${returningBadge(g, event.id)}
           <div class="intel-form" data-intel="${g.id}">
             <label>Arriving</label>
             <input type="time" data-f="arriving" value="${esc(intel.arriving)}" />
             <label>The ask - what does success with ${esc(firstName(g.name))} look like?</label>
-            <input data-f="ask" value="${esc(intel.ask)}" placeholder="get them talking to X · say thank you · maintenance" />
+            <input data-f="ask" value="${esc(intel.ask)}" placeholder="get them talking to X Â· say thank you Â· maintenance" />
             <label>Avoid - anything off-limits</label>
             <input data-f="avoid" value="${esc(intel.avoid)}" placeholder="recent layoff, a competitor in the room, a soured deal" />
             <label>Open loop from last time</label>
-            <input data-f="openLoop" value="${esc(intel.openLoop)}" placeholder="said they'd send the deck · asked about your timeline" />
+            <input data-f="openLoop" value="${esc(intel.openLoop)}" placeholder="said they'd send the deck Â· asked about your timeline" />
             <label>Dietary / logistics</label>
             <input data-f="dietary" value="${esc(g.dietary)}" placeholder="vegetarian, wheelchair access, plus-one" />
             <label>Host notes</label>
@@ -196,7 +197,7 @@ function renderGuestsTab(body, event, guests) {
     await loadStoreFromDb();
     renderEvent(event.id, "guests");
     const el = document.getElementById("ag-result");
-    if (el) el.textContent = `${stats.added} new · ${stats.returning} returning · ${stats.duplicates} already on the list`;
+    if (el) el.textContent = `${stats.added} new Â· ${stats.returning} returning Â· ${stats.duplicates} already on the list`;
   });
 }
 
@@ -216,7 +217,7 @@ function renderConnectorsTab(body, event, guests) {
         return `
         <div class="edge-card">
           <div class="edge-pair">${avatarHtml(a, "small")}<span class="edge-name">${esc(a.name)}</span>
-            <span class="edge-link">↔</span>
+            <span class="edge-link">â</span>
             ${avatarHtml(b, "small")}<span class="edge-name">${esc(b.name)}</span></div>
           <div class="edge-basis">${esc(ed.basis)}</div>
           <button class="button subtle small" data-del-edge="${ed.id}" type="button">Remove</button>
@@ -281,7 +282,7 @@ function renderDigestTab(body, event, guests) {
         <strong>${esc(digestTo)}</strong> at the configured time.</p>
     </div>
     <div class="digest-preview">
-      <div class="digest-meta">Villagers · day-of digest${event.date ? " · " + fmtDate(event.date) : ""}${sendAt ? " · sends ~" + fmtTime(sendAt) : ""}</div>
+      <div class="digest-meta">Villagers Â· day-of digest${event.date ? " Â· " + fmtDate(event.date) : ""}${sendAt ? " Â· sends ~" + fmtTime(sendAt) : ""}</div>
       <div class="digest-bubble">${lines.length ? lines.map(l => `<p>${l}</p>`).join("") : "<p>No guests yet.</p>"}</div>
       <div class="digest-actions">
         <button class="button small" id="digest-copy" type="button">Copy as text</button>
@@ -350,7 +351,7 @@ function renderRsvpTab(body, event, guests) {
         <tr>
           <td class="p-name">${esc(person.name)}</td>
           <td>${r.status === "yes" ? "Coming" : r.status === "no" ? "Regrets" : "Maybe"}</td>
-          <td>${esc([r.dietary, r.plusOne ? "plus-one" : ""].filter(Boolean).join(" · "))}</td>
+          <td>${esc([r.dietary, r.plusOne ? "plus-one" : ""].filter(Boolean).join(" Â· "))}</td>
           <td class="p-note">${esc(r.note || "")}</td>
         </tr>`).join("")}
       </tbody>
@@ -432,6 +433,115 @@ function renderSettingsTab(body, event) {
 
 
 
+
+/* ---------- Notes tab: take notes by text ----------
+   Hosts and their reps text notes to the dedicated number during the
+   event; the database matches each note to the guest it names and opens
+   a follow-up (see supabase/20260926_text_in_notes.sql). */
+let notesNumberCache = null;
+async function loadNotesNumber() {
+  if (notesNumberCache !== null) return notesNumberCache;
+  const { data, error } = await sb.rpc("get_notes_number");
+  notesNumberCache = error ? "" : (data || "");
+  return notesNumberCache;
+}
+
+function noteCardHtml(n, guests) {
+  const person = n.person_id ? personById(n.person_id) : null;
+  const when = fmtTsTime(n.received_at);
+  const chip = n.match_state === "matched"
+    ? `<span class="flag on">Filed to ${esc(person ? person.name : "")}</span>`
+    : n.match_state === "ambiguous"
+      ? `<span class="flag">Which guest?</span>`
+      : `<span class="flag">Not filed yet</span>`;
+  return `
+    <div class="guest-card note-card">
+      <div class="note-meta"><span>${esc(texterLabel(n))} Â· ${esc(when)}</span>${chip}</div>
+      <div class="note-body">${esc(n.body)}</div>
+      ${n.match_state !== "matched" ? `
+        <div class="note-assign">
+          <select data-assign-for="${n.id}">
+            <option value="">File to a guest...</option>
+            ${guests.map(g => `<option value="${g.id}">${esc(g.name)}</option>`).join("")}
+          </select>
+        </div>` : ""}
+    </div>`;
+}
+
+function followUpRowHtml(f) {
+  const person = f.person_id ? personById(f.person_id) : null;
+  return `<div class="texter-row"><span><strong>${esc(person ? person.name : "Guest")}</strong> - ${esc(f.summary)}</span><button class="button small" data-fup-done="${f.id}" type="button">Mark done</button></div>`;
+}
+
+function renderNotesTab(body, event, guests) {
+  const notes = notesFor(event.id);
+  const fups = followUpsFor(event.id);
+  const open = fups.filter(f => f.status !== "done");
+  const doneCount = fups.length - open.length;
+  const texters = store.texters || [];
+  body.innerHTML = `
+    <div class="tab-intro">
+      <p class="muted">Take notes by text. During the event, text anything to your Villagers number -
+        it lands here, matched to the right guest, with a follow-up opened. No app to open, no form to fill.</p>
+      <p class="notes-number-line">Your notes number: <strong id="notes-number">loading...</strong></p>
+    </div>
+    <section class="after-section">
+      <div class="section-head"><div><h2>Notes from the room</h2><p class="muted">Newest first. Anything that did not name a guest waits for you to file it.</p></div></div>
+      <div class="notes-feed">
+        ${notes.map(n => noteCardHtml(n, guests)).join("") || '<p class="empty-state">Nothing texted in yet for this event. Text the number above once the room opens.</p>'}
+      </div>
+    </section>
+    <section class="after-section">
+      <div class="section-head"><div><h2>Follow-ups from texts</h2><p class="muted">Opened automatically when a note names a guest.</p></div></div>
+      ${open.map(followUpRowHtml).join("") || '<p class="empty-state">Matched notes open follow-ups here.</p>'}
+      ${doneCount ? `<p class="muted">${doneCount} done</p>` : ""}
+    </section>
+    <section class="after-section">
+      <div class="section-head"><div><h2>Who can text in</h2><p class="muted">Notes are accepted from these numbers only.</p></div></div>
+      <div class="texter-list">
+        ${texters.map(t => `<div class="texter-row"><span>${esc(t.label || "")}${t.label ? " Â· " : ""}${esc(t.phone)}</span><button class="button small ghost" data-rm-texter="${t.id}" type="button">Remove</button></div>`).join("") || '<p class="empty-state">No numbers yet.</p>'}
+      </div>
+      <form id="add-texter" class="texter-add">
+        <input id="texter-label" placeholder="Name (e.g. Lauren)" />
+        <input id="texter-phone" placeholder="+1 phone number" />
+        <button class="button small" type="submit">Add texter</button>
+      </form>
+    </section>`;
+
+  body.querySelectorAll("[data-rm-texter]").forEach(btn => btn.addEventListener("click", async () => {
+    if (!confirm("Stop accepting notes from this number?")) return;
+    btn.disabled = true;
+    await dbRemoveTexter(btn.dataset.rmTexter);
+    await loadStoreFromDb(); renderEvent(event.id, "notes");
+  }));
+  const tf = document.getElementById("add-texter");
+  if (tf) tf.addEventListener("submit", async (ev) => {
+    ev.preventDefault();
+    const phone = document.getElementById("texter-phone").value.trim();
+    if (!phone) return;
+    const btn = tf.querySelector("button[type=submit]");
+    btn.disabled = true;
+    const res = await dbAddTexter(phone, document.getElementById("texter-label").value);
+    if (!res.ok) { btn.disabled = false; btn.textContent = res.error || "Try again"; return; }
+    await loadStoreFromDb(); renderEvent(event.id, "notes");
+  });
+  body.querySelectorAll("[data-assign-for]").forEach(sel => sel.addEventListener("change", async () => {
+    if (!sel.value) return;
+    sel.disabled = true;
+    await dbResolveNote(sel.dataset.assignFor, sel.value);
+    await loadStoreFromDb(); renderEvent(event.id, "notes");
+  }));
+  body.querySelectorAll("[data-fup-done]").forEach(btn => btn.addEventListener("click", async () => {
+    btn.disabled = true;
+    await dbSetFollowUpDone(btn.dataset.fupDone, true);
+    await loadStoreFromDb(); renderEvent(event.id, "notes");
+  }));
+  loadNotesNumber().then(num => {
+    const el = document.getElementById("notes-number");
+    if (el) el.textContent = num || "not live yet - coming with the carrier registration";
+  });
+}
+
 /* ---------- After tab: debrief, intro follow-through, proof ---------- */
 function introDraft(event, edge) {
   const a = personById(edge.aId), b = personById(edge.bId);
@@ -454,7 +564,7 @@ function renderAfterEventTab(body, event, guests) {
       <div class="impact-mini"><strong>${sent}</strong><span>intros made</span><strong>${followUps}</strong><span>follow-ups logged</span></div>
     </div>
     <section class="after-section ${done ? "is-complete" : ""}">
-      <div class="section-kicker">01 · Debrief</div>
+      <div class="section-kicker">01 Â· Debrief</div>
       <div class="section-head"><div><h2>${done ? "Debrief closed" : "Did the win happen?"}</h2><p class="muted">Two minutes now makes the next event smarter.</p></div>${done ? '<span class="status-pill done">Closed</span>' : '<span class="status-pill">Open</span>'}</div>
       <div class="debrief-grid">
         <div class="debrief-card">
@@ -475,14 +585,14 @@ function renderAfterEventTab(body, event, guests) {
       ${!done ? '<button class="button" id="close-debrief" type="button">Close the debrief</button>' : `<p class="closed-note">Closed ${fmtTsDate(event.debriefedAt)}. These open loops now travel with each person.</p>`}
     </section>
     <section class="after-section">
-      <div class="section-kicker">02 · Intro follow-through</div>
+      <div class="section-kicker">02 Â· Intro follow-through</div>
       <div class="section-head"><div><h2>Make the room keep working.</h2><p class="muted">Each connector tag becomes a ready-to-send introduction with the credible reason already named.</p></div></div>
       <div class="intro-stack">
         ${edges.map(edge => {
           const a=personById(edge.aId), b=personById(edge.bId), draft=edge.introMessage || introDraft(event,edge);
           if(!a || !b) return "";
           return `<article class="intro-card ${edge.introSentAt ? "sent" : ""}" data-edge="${edge.id}">
-            <div class="intro-top"><div><div class="intro-pair">${esc(a.name)} <span>↔</span> ${esc(b.name)}</div><p>${esc(edge.basis)}</p></div>${edge.introSentAt ? '<span class="status-pill done">Sent</span>' : '<span class="status-pill">Ready</span>'}</div>
+            <div class="intro-top"><div><div class="intro-pair">${esc(a.name)} <span>â</span> ${esc(b.name)}</div><p>${esc(edge.basis)}</p></div>${edge.introSentAt ? '<span class="status-pill done">Sent</span>' : '<span class="status-pill">Ready</span>'}</div>
             <textarea class="intro-draft" rows="5" ${edge.introSentAt ? "disabled" : ""}>${esc(draft)}</textarea>
             <div class="intro-actions">
               <button class="button small ghost" data-copy-intro="${edge.id}" type="button">Copy as text</button>
@@ -491,6 +601,12 @@ function renderAfterEventTab(body, event, guests) {
           </article>`;
         }).join("") || '<p class="empty-state">Connector pairings will appear here as ready-to-send introductions.</p>'}
       </div>
+      <div class="section-kicker">03 Â· Texted notes</div>
+      <div class="section-head"><div><h2>What the room told you.</h2><p class="muted">Everything texted in during the event, and the follow-ups it opened.</p></div></div>
+      <div class="notes-feed">
+        ${notesFor(event.id).map(n => noteCardHtml(n, guests)).join("") || '<p class="empty-state">No notes were texted in during this event.</p>'}
+      </div>
+      ${followUpsFor(event.id).length ? '<div class="texter-list">' + followUpsFor(event.id).filter(f => f.status !== "done").map(followUpRowHtml).join("") + "</div>" : ""}
     </section>`;
 
   const close = document.getElementById("close-debrief");
@@ -513,5 +629,16 @@ function renderAfterEventTab(body, event, guests) {
   body.querySelectorAll("[data-followup]").forEach(btn => btn.addEventListener("click", async () => {
     const edge=event.edges.find(e=>e.id===btn.dataset.followup); btn.disabled=true;
     await dbLogFollowUp(edge.id,(edge.followUpCount||0)+1); await loadStoreFromDb(); renderEvent(event.id,"after");
+  }));
+  body.querySelectorAll("[data-fup-done]").forEach(btn => btn.addEventListener("click", async () => {
+    btn.disabled = true;
+    await dbSetFollowUpDone(btn.dataset.fupDone, true);
+    await loadStoreFromDb(); renderEvent(event.id, "after");
+  }));
+  body.querySelectorAll("[data-assign-for]").forEach(sel => sel.addEventListener("change", async () => {
+    if (!sel.value) return;
+    sel.disabled = true;
+    await dbResolveNote(sel.dataset.assignFor, sel.value);
+    await loadStoreFromDb(); renderEvent(event.id, "after");
   }));
 }
