@@ -256,7 +256,7 @@ begin
 
   v_status := null;
   for i in 1..24 loop
-    select x.status_code, x.body into v_status, v_resp from net._http_response x where x.id = v_req;
+    select x.status_code, x.content into v_status, v_resp from net._http_response x where x.id = v_req;
     exit when v_status is not null;
     perform pg_sleep(0.25);
   end loop;
@@ -274,31 +274,13 @@ begin
     end loop;
   end if;
 
-  -- Queued reply texts.
-  for r in select id, from_number, reply_body from public.event_notes where reply_status = 'pending' loop
-    select net.http_post(
-      url := 'https://api.twilio.com/2010-04-01/Accounts/' || v_sid || '/Messages.json',
-      headers := jsonb_build_object('Authorization', 'Basic ' || encode(convert_to(v_sid || ':' || v_token, 'UTF8'), 'base64'),
-                                    'Content-Type', 'application/x-www-form-urlencoded'),
-      body := jsonb_build_object('From', v_number, 'To', r.from_number, 'Body', r.reply_body),
-      timeout_milliseconds := 8000
-    ) into v_req;
+  -- Replies: pg_net can only POST JSON, Twilio requires form-encoded, so
+  -- reply sending needs an edge function. Mark queued replies skipped for now.
+  update public.event_notes
+  set reply_status = 'skipped',
+      reply_error = 'reply sending requires a Supabase edge function (pg_net posts JSON; Twilio requires form-encoded)'
+  where reply_status = 'pending';
 
-    v_status := null; v_resp := null;
-    for i in 1..24 loop
-      select x.status_code, x.body into v_status, v_resp from net._http_response x where x.id = v_req;
-      exit when v_status is not null;
-      perform pg_sleep(0.25);
-    end loop;
-
-    if v_status between 200 and 299 then
-      update public.event_notes set reply_status = 'sent' where id = r.id;
-    else
-      update public.event_notes
-      set reply_status = 'failed', reply_error = left(coalesce(v_resp, 'no response'), 300)
-      where id = r.id;
-    end if;
-  end loop;
 end;
 $$;
 
