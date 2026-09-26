@@ -40,6 +40,15 @@ visible in git history, but its Supabase password has been rotated and it no lon
   rows in `digest_deliveries` are rendered by `build_digest_text()` and emailed
   via `pg_net` through the email provider's API (key lives in the `app_config`
   table, which has RLS enabled and no read policies).
+- **Text-in notes**: hosts and their reps text notes to a dedicated number
+  during the event. A `pg_cron` poller (`process_sms_notes`) pulls inbound
+  texts from the provider API via `pg_net`, `ingest_inbound_sms` matches the
+  sender to the host, the event happening today in the host's timezone, and
+  the guest named in the body, and opens a follow-up on a match. Texts from
+  unknown numbers are stored but hidden and never answered. Unmatched notes
+  wait for the host to file them from the Notes tab (`resolve_note_match`).
+  Migration: `supabase/20260926_text_in_notes.sql`. Twilio account/API keys
+  live in the credential store; the keys the poller uses live in `app_config`.
 - **Luma event pages**: creating an event also creates a real Luma event page
   through the Luma API. The database RPC `create_luma_event` calls Luma via
   `pg_net` (key in `app_config` as `luma_api_key`, never sent to the client),
@@ -62,11 +71,16 @@ that line is drawn.)
   emailing itself at T-60, the full People/intelligence/connector layer,
   Luma event-page creation from the new-event flow.
 - **Still ahead:** sending from the host's own email domain (needs a DNS
-  verification step), SMS digest delivery (paid provider - deliberately not
-  bought), LinkedIn/public-data auto-pull, automatic connector matching,
-  automatic per-host provisioning beyond the current approved host, syncing
-  Luma RSVPs back into the guest list, and pushing later event edits
-  (title/time/location) through to Luma.
+  verification step), SMS digest delivery, LinkedIn/public-data auto-pull,
+  automatic connector matching, automatic per-host provisioning beyond the
+  current approved host, syncing Luma RSVPs back into the guest list, and
+  pushing later event edits (title/time/location) through to Luma.
+- **Text-in notes, live on a trial number:** the dedicated number runs on a
+  Twilio trial (outbound texts only reach carrier-verified numbers) until A2P
+  10DLC carrier registration clears for a production number. Confirmation
+  reply texts are not sent yet - `pg_net` only posts JSON and Twilio requires
+  form-encoded bodies, so the send step waits on a small edge function;
+  queued replies are marked `skipped` in the meantime.
 - **Post-event loop:** the After view, debrief state, carried-forward People open loops, intro send records, and follow-up tallies are backed by live columns on `events`, `event_guests`, `host_people`, and `connectors`. Drafts are copied for the host to send from their own channel; Villagers records the host's sent/follow-up marks, it does not send messages itself.
 - **Never commit a real guest list here.** Guest data lives in the database,
   not the repo.
