@@ -64,15 +64,7 @@ function roleLine(p) { return [p.role, p.company].filter(Boolean).join(" at ") |
 function money(n) { return "$" + Math.round(n).toLocaleString("en-US"); }
 function numOrNull(v) { const n = parseFloat(String(v).replace(/[$,]/g, "")); return isFinite(n) ? n : null; }
 
-function annotate(action, goal, support, scope) {
-  return `
-  <div class="v3-annot">
-    <div><h4>User action</h4><p>${action}</p></div>
-    <div><h4>User goal</h4><p>${goal}</p></div>
-    <div><h4>Villagers support</h4><p>${support}</p></div>
-  </div>
-  <div class="v3-scope"><b>Product scope</b><span>${scope}</span></div>`;
-}
+function annotate() { return ""; }
 
 function phoneHtml(title, sub, bubbles, noteText) {
   return `
@@ -112,8 +104,6 @@ function renderSide(active, event) {
     </nav>
     <div class="ws-panel"><h5>Platform team</h5>
       <p>Full workspace</p><p>Client: ${esc(clientOf())}</p><p>Host of record: ${esc(host)}</p></div>
-    <div class="ws-panel"><h5>Client / billing</h5>
-      <p>${esc(clientOf())}</p><p>Paying GP: ${esc(host)}</p><p>Terms to agree</p><p>No price set</p></div>
     <div class="ws-panel"><h5>Access</h5>
       <p>Platform: workspace</p><p>Host + team: team view + digest</p><p>Guests: texts only</p></div>
     <button class="ws-out" id="ws-signout" type="button">Sign out</button>`;
@@ -338,11 +328,20 @@ function v3Texts(body, event, guests) {
   const g0 = guests[0], gFirst = g0 ? firstName(g0.name) : "there";
   const link = rsvpLink(event);
   const ph = (n, label, goal, support, phone) => `
-    <div class="v3-phone-col"><h3><span>${n}</span> ${label}</h3>${phone}
-      <h5>User goal</h5><p>${goal}</p><h5>Villagers support</h5><p>${support}</p></div>`;
+    <div class="v3-phone-col"><h3><span>${n}</span> ${label}</h3>${phone}</div>`;
   const when = event.doorsTime ? fmtTime(event.doorsTime) : "";
   body.innerHTML = `
     <p class="v3-lede">${esc(g0 ? g0.name : "Guests")} and the rest of the room are guests. Texts only: no app, no host-only notes.</p>
+    <div class="v3-compose">
+      <h3>Text a guest</h3>
+      <p class="v3-compose-note">Sends from the Villagers Twilio number. Guests reply to that number.</p>
+      <div class="v3-compose-row">
+        <input id="sms-to" type="tel" placeholder="Guest phone, e.g. 516 555 0123" autocomplete="off" />
+      </div>
+      <textarea id="sms-body" rows="3" placeholder="Write your text">${esc("Hi " + gFirst + ", " + host + " here. Join us for " + title + (when ? ", doors " + when : "") + "? RSVP: " + link)}</textarea>
+      <div class="v3-compose-row"><button class="button" id="sms-send" type="button">Send text</button><span id="sms-status" class="muted"></span></div>
+      <div id="sms-log" class="v3-sms-log"></div>
+    </div>
     <div class="v3-phones">
       ${ph("01", "Host-owned RSVP", "Accept the right invitation quickly.",
         "A custom page with host, address and schedule. RSVP routes back to the event.",
@@ -371,8 +370,25 @@ function v3Texts(body, event, guests) {
           { side: "in", html: `Plus-ones aren't confirmed for this event. I can ask ${esc(host)}.` },
           { side: "out", html: "Please ask." },
           { side: "in", html: "Sent for host review. I'll confirm when there's an answer." }]))}
-    </div>
-    <div class="v3-scope warn"><b>Status</b><span>The sample conversations above are illustrative; the event details in them come from this event. Today guests RSVP on the web page and the host sends the invite. Texting guests directly is not live: it needs carrier registration for a production number. Host-only notes never appear to guests. Guest floor notes remain optional and undecided.</span></div>`;
+    </div>`;
+  const toEl = document.getElementById("sms-to"), bodyEl = document.getElementById("sms-body");
+  const statusEl = document.getElementById("sms-status"), sendBtn = document.getElementById("sms-send");
+  const logEl = document.getElementById("sms-log");
+  async function loadLog() {
+    const { data } = await sb.from("sms_outbox").select("to_number,body,status,error,created_at")
+      .eq("event_id", event.id).order("created_at", { ascending: false }).limit(10);
+    logEl.innerHTML = (data || []).map(r => `<div class="v3-sms-row ${esc(r.status)}"><b>${esc(r.to_number)}</b> &middot; ${esc(r.status)}${r.error ? " &middot; " + esc(r.error) : ""}<br><span>${esc(r.body)}</span></div>`).join("");
+  }
+  loadLog();
+  sendBtn.addEventListener("click", async () => {
+    statusEl.textContent = "Sending...";
+    sendBtn.disabled = true;
+    const { data, error } = await sb.rpc("send_guest_text", { p_event: event.id, p_to: toEl.value, p_body: bodyEl.value });
+    sendBtn.disabled = false;
+    if (error) statusEl.textContent = "Could not send: " + error.message;
+    else statusEl.textContent = data && data.ok ? "Sent." : "Not sent: " + ((data && data.error) || "unknown error");
+    loadLog();
+  });
 }
 
 /* ----- Digest: team digest + platform notes ----- */
@@ -410,16 +426,11 @@ function v3Digest(body, event, guests) {
     <div class="v3-phones two">
       <div class="v3-phone-col"><h3><span>01</span> Team view / ${esc(host)} + team</h3>
         ${phoneHtml("Villagers &middot; Team digest", esc(host) + " + team &middot; Reviewed by platform team", bubs, "Built from this event's data")}
-        <button class="v3-btn ghost" id="v3-digest-copy" type="button">Copy digest as text</button>
-        <h5>User goal</h5><p>Walk in knowing who matters and who can connect them.</p>
-        <h5>Villagers support</h5><p>Reviewed profiles and credible intro paths arrive about an hour before doors.</p></div>
+        <button class="v3-btn ghost" id="v3-digest-copy" type="button">Copy digest as text</button></div>
       <div class="v3-phone-col"><h3><span>02</span> Host view / Platform team notes</h3>
-        ${phoneHtml("Villagers &middot; Platform notes", "Platform team &middot; Full-workspace operator", nb, "Built from this event's notes")}
-        <h5>User goal</h5><p>Keep a useful conversation from becoming a forgotten follow-up.</p>
-        <h5>Villagers support</h5><p>Capture who met whom, the discussion, owner and next step. Confirm before saving.</p></div>
+        ${phoneHtml("Villagers &middot; Platform notes", "Platform team &middot; Full-workspace operator", nb, "Built from this event's notes")}</div>
       <div class="v3-phone-col wide">${v3Flow(event, guests)}</div>
     </div>
-    <div class="v3-scope warn"><b>Status</b><span>Today the digest is generated and emailed to ${esc((currentHost && currentHost.digest_email) || "the host")} at T-${event.digestMinutes || 60}; delivering it by text is not live yet. Notes texted to the Villagers number land below. Automatic replies to the texter are not live yet, so the replies shown here are what Villagers records.</span></div>
     <div class="v3-card"><div id="v3-notes"></div></div>
     ${annotate("Platform team prepares and captures notes. The host and team use the digest to make warm intros.",
       "Help the client team connect and keep the next step from becoming a forgotten follow-up.",
