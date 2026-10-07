@@ -346,21 +346,21 @@ const TEMPLATES = [
   {
     id: "breakfast",
     name: "Investor Breakfast",
-    tag: "Morning Â· seated Â· 8-10",
+    tag: "Morning · seated · 8-10",
     blurb: "Coffee, one long table, everyone out by 10. Quiet room, direct conversations.",
     defaults: { doorsTime: "08:30", digestMinutes: 60, win: "Every founder leaves with one warm intro." }
   },
   {
     id: "happyhour",
     name: "Happy Hour",
-    tag: "Evening Â· standing Â· 15-30",
+    tag: "Evening · standing · 15-30",
     blurb: "Drinks and a loose room. The host works the edges; pairings do the heavy lifting.",
     defaults: { doorsTime: "17:30", digestMinutes: 45, win: "Two portfolio intros and one LP relationship moved forward." }
   },
   {
     id: "salon",
     name: "Salon Dinner",
-    tag: "Evening Â· seated Â· 8-12",
+    tag: "Evening · seated · 8-12",
     blurb: "A set table, a seating plan, one conversation. The highest-touch format.",
     defaults: { doorsTime: "18:15", digestMinutes: 60, win: "Every guest leaves with one warm intro." }
   },
@@ -505,7 +505,7 @@ function renderEvents() {
   const events = store.events.slice().sort((a, b) => (b.date || "").localeCompare(a.date || ""));
   app.innerHTML = `
     <section class="hero">
-      <p class="eyebrow">Villagers Â· by Pallas Taylor</p>
+      <p class="eyebrow">Villagers · by Pallas Taylor</p>
       <h1>Know the room<br />before you're <em>in it.</em></h1>
       <p class="lede">Guest list in, intelligence out. Villagers keeps a standing record of
         everyone you've ever hosted, arms you with the ask, the avoid list and the open
@@ -520,7 +520,7 @@ function renderEvents() {
             <span class="template-tag">${esc(t.tag)}</span>
             <h3>${esc(t.name)}</h3>
             <p>${esc(t.blurb)}</p>
-            <span class="template-go">Use this template â</span>
+            <span class="template-go">Use this template →</span>
           </button>`).join("")}
       </div>
       <form class="new-event" id="new-event-form" hidden>
@@ -563,7 +563,7 @@ function renderEvents() {
           <div class="event-tile" data-open-event="${e.id}">
             <span class="tile-date">${fmtDate(e.date)}</span>
             <h3>${esc(e.name)}</h3>
-            <span class="tile-meta">${e.guestIds.length} guest${e.guestIds.length === 1 ? "" : "s"}${yesCount ? " Â· " + yesCount + " confirmed" : ""}${e.location ? " Â· " + esc(e.location) : ""}</span>
+            <span class="tile-meta">${e.guestIds.length} guest${e.guestIds.length === 1 ? "" : "s"}${yesCount ? " · " + yesCount + " confirmed" : ""}${e.location ? " · " + esc(e.location) : ""}</span>
             ${returning ? `<span class="tile-returning">${returning} returning guest${returning === 1 ? "" : "s"} remembered</span>` : ""}
           </div>`;
         }).join("") : `<p class="empty-state">No events yet. Pick a template above and Villagers sets up the rest.</p>`}
@@ -575,7 +575,7 @@ function renderEvents() {
     pendingTemplate = TEMPLATES.find(t => t.id === btn.dataset.template);
     const form = document.getElementById("new-event-form");
     form.hidden = false;
-    document.getElementById("ne-eyebrow").textContent = "New event Â· " + pendingTemplate.name;
+    document.getElementById("ne-eyebrow").textContent = "New event · " + pendingTemplate.name;
     document.getElementById("ev-doors").value = pendingTemplate.defaults.doorsTime;
     document.getElementById("ev-win").value = pendingTemplate.defaults.win;
     document.getElementById("ev-name").focus();
