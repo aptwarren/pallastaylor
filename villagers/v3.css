@@ -140,3 +140,16 @@ body.ws-on .guest-card, body.ws-on .rsvp-share { border-radius: 12px; }
 .v3-card label { text-transform: none; letter-spacing: 0; font-weight: 600; }
 .v3-card label input, .v3-card .v3-form input { font-weight: 400; }
 .v3-who h4, .v3-who b { font-family: Inter, system-ui, sans-serif; font-size: 15px; }
+
+/* Guest texts compose box */
+.v3-compose { max-width: 640px; margin: 0 0 28px; padding: 18px; border: 1px solid #ddd6ea; border-radius: 14px; background: #fff; }
+.v3-compose h3 { margin: 0 0 4px; }
+.v3-compose-note { margin: 0 0 12px; color: #6b6480; font-size: 14px; }
+.v3-compose-row { display: flex; gap: 10px; align-items: center; margin: 8px 0; flex-wrap: wrap; }
+.v3-compose input, .v3-compose select, .v3-compose textarea { font: inherit; padding: 10px 12px; border: 1px solid #cfc7e0; border-radius: 10px; }
+.v3-compose input { flex: 1; min-width: 180px; }
+.v3-compose textarea { width: 100%; box-sizing: border-box; resize: vertical; }
+.v3-sms-log { margin-top: 12px; font-size: 14px; }
+.v3-sms-row { padding: 8px 0; border-top: 1px solid #eee9f5; }
+.v3-sms-row.failed { color: #9b2c2c; }
+.v3-sms-row span { color: #555; }
