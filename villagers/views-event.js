@@ -1,7 +1,7 @@
 /* ============================================================
    Villagers - Event dashboard
-   Tabs: Guests (per-guest intelligence) Â· Connectors Â· Digest Â·
-   RSVP Â· Settings. Depends on app.js (store, db helpers, esc).
+   Tabs: Guests (per-guest intelligence) · Connectors · Digest ·
+   RSVP · Settings. Depends on app.js (store, db helpers, esc).
    ============================================================ */
 
 "use strict";
@@ -55,7 +55,7 @@ function renderEvent(eventId, tab) {
       <div class="book-title-row">
         <h1>${esc(event.name.replace(/ \(sample\)$/, ""))}</h1>
       </div>
-      <p class="book-goal">${fmtDate(event.date)}${event.doorsTime ? " Â· doors " + fmtTime(event.doorsTime) : ""}${event.location ? " Â· " + esc(event.location) : ""}
+      <p class="book-goal">${fmtDate(event.date)}${event.doorsTime ? " · doors " + fmtTime(event.doorsTime) : ""}${event.location ? " · " + esc(event.location) : ""}
         ${event.win ? `<br /><strong>The win:</strong> ${esc(event.win)}` : ""}</p>
       <div class="summary-strip">
         <div class="stat"><b>${guests.length}</b><span>On the list</span></div>
@@ -96,19 +96,19 @@ function renderGuestsTab(body, event, guests) {
         <div class="guest-card ${eventsFor(g.id).length > 1 ? "returning" : ""}">
           ${avatarHtml(g)}
           <div class="guest-name">${esc(g.name)}</div>
-          <div class="guest-role">${esc([g.role, g.company].filter(Boolean).join(" Â· ")) || "Role TBD"}</div>
+          <div class="guest-role">${esc([g.role, g.company].filter(Boolean).join(" · ")) || "Role TBD"}</div>
           ${rsvp ? `<div class="guest-flags"><span class="flag ${rsvp.status === "yes" ? "on" : ""}">${rsvp.status === "yes" ? "Confirmed" : esc(rsvp.status)}</span>${g.flags.vip ? '<span class="flag vip on">VIP</span>' : ""}</div>` : (g.flags.vip ? '<div class="guest-flags"><span class="flag vip on">VIP</span></div>' : "")}
-          ${g.context ? `<div class="guest-context">${esc(g.context)}${g.contextSuggested ? ' <span class="suggest-chip">suggested Â· editable</span>' : ""}</div>` : ""}
+          ${g.context ? `<div class="guest-context">${esc(g.context)}${g.contextSuggested ? ' <span class="suggest-chip">suggested · editable</span>' : ""}</div>` : ""}
           ${returningBadge(g, event.id)}
           <div class="intel-form" data-intel="${g.id}">
             <label>Arriving</label>
             <input type="time" data-f="arriving" value="${esc(intel.arriving)}" />
             <label>The ask - what does success with ${esc(firstName(g.name))} look like?</label>
-            <input data-f="ask" value="${esc(intel.ask)}" placeholder="get them talking to X Â· say thank you Â· maintenance" />
+            <input data-f="ask" value="${esc(intel.ask)}" placeholder="get them talking to X · say thank you · maintenance" />
             <label>Avoid - anything off-limits</label>
             <input data-f="avoid" value="${esc(intel.avoid)}" placeholder="recent layoff, a competitor in the room, a soured deal" />
             <label>Open loop from last time</label>
-            <input data-f="openLoop" value="${esc(intel.openLoop)}" placeholder="said they'd send the deck Â· asked about your timeline" />
+            <input data-f="openLoop" value="${esc(intel.openLoop)}" placeholder="said they'd send the deck · asked about your timeline" />
             <label>Dietary / logistics</label>
             <input data-f="dietary" value="${esc(g.dietary)}" placeholder="vegetarian, wheelchair access, plus-one" />
             <label>Host notes</label>
@@ -197,7 +197,7 @@ function renderGuestsTab(body, event, guests) {
     await loadStoreFromDb();
     renderEvent(event.id, "guests");
     const el = document.getElementById("ag-result");
-    if (el) el.textContent = `${stats.added} new Â· ${stats.returning} returning Â· ${stats.duplicates} already on the list`;
+    if (el) el.textContent = `${stats.added} new · ${stats.returning} returning · ${stats.duplicates} already on the list`;
   });
 }
 
@@ -217,7 +217,7 @@ function renderConnectorsTab(body, event, guests) {
         return `
         <div class="edge-card">
           <div class="edge-pair">${avatarHtml(a, "small")}<span class="edge-name">${esc(a.name)}</span>
-            <span class="edge-link">â</span>
+            <span class="edge-link">↔</span>
             ${avatarHtml(b, "small")}<span class="edge-name">${esc(b.name)}</span></div>
           <div class="edge-basis">${esc(ed.basis)}</div>
           <button class="button subtle small" data-del-edge="${ed.id}" type="button">Remove</button>
@@ -282,7 +282,7 @@ function renderDigestTab(body, event, guests) {
         <strong>${esc(digestTo)}</strong> at the configured time.</p>
     </div>
     <div class="digest-preview">
-      <div class="digest-meta">Villagers Â· day-of digest${event.date ? " Â· " + fmtDate(event.date) : ""}${sendAt ? " Â· sends ~" + fmtTime(sendAt) : ""}</div>
+      <div class="digest-meta">Villagers · day-of digest${event.date ? " · " + fmtDate(event.date) : ""}${sendAt ? " · sends ~" + fmtTime(sendAt) : ""}</div>
       <div class="digest-bubble">${lines.length ? lines.map(l => `<p>${l}</p>`).join("") : "<p>No guests yet.</p>"}</div>
       <div class="digest-actions">
         <button class="button small" id="digest-copy" type="button">Copy as text</button>
@@ -351,7 +351,7 @@ function renderRsvpTab(body, event, guests) {
         <tr>
           <td class="p-name">${esc(person.name)}</td>
           <td>${r.status === "yes" ? "Coming" : r.status === "no" ? "Regrets" : "Maybe"}</td>
-          <td>${esc([r.dietary, r.plusOne ? "plus-one" : ""].filter(Boolean).join(" Â· "))}</td>
+          <td>${esc([r.dietary, r.plusOne ? "plus-one" : ""].filter(Boolean).join(" · "))}</td>
           <td class="p-note">${esc(r.note || "")}</td>
         </tr>`).join("")}
       </tbody>
@@ -456,7 +456,7 @@ function noteCardHtml(n, guests) {
       : `<span class="flag">Not filed yet</span>`;
   return `
     <div class="guest-card note-card">
-      <div class="note-meta"><span>${esc(texterLabel(n))} Â· ${esc(when)}</span>${chip}</div>
+      <div class="note-meta"><span>${esc(texterLabel(n))} · ${esc(when)}</span>${chip}</div>
       <div class="note-body">${esc(n.body)}</div>
       ${n.match_state !== "matched" ? `
         <div class="note-assign">
@@ -499,7 +499,7 @@ function renderNotesTab(body, event, guests) {
     <section class="after-section">
       <div class="section-head"><div><h2>Who can text in</h2><p class="muted">Notes are accepted from these numbers only.</p></div></div>
       <div class="texter-list">
-        ${texters.map(t => `<div class="texter-row"><span>${esc(t.label || "")}${t.label ? " Â· " : ""}${esc(t.phone)}</span><button class="button small ghost" data-rm-texter="${t.id}" type="button">Remove</button></div>`).join("") || '<p class="empty-state">No numbers yet.</p>'}
+        ${texters.map(t => `<div class="texter-row"><span>${esc(t.label || "")}${t.label ? " · " : ""}${esc(t.phone)}</span><button class="button small ghost" data-rm-texter="${t.id}" type="button">Remove</button></div>`).join("") || '<p class="empty-state">No numbers yet.</p>'}
       </div>
       <form id="add-texter" class="texter-add">
         <input id="texter-label" placeholder="Name (e.g. Lauren)" />
@@ -564,7 +564,7 @@ function renderAfterEventTab(body, event, guests) {
       <div class="impact-mini"><strong>${sent}</strong><span>intros made</span><strong>${followUps}</strong><span>follow-ups logged</span></div>
     </div>
     <section class="after-section ${done ? "is-complete" : ""}">
-      <div class="section-kicker">01 Â· Debrief</div>
+      <div class="section-kicker">01 · Debrief</div>
       <div class="section-head"><div><h2>${done ? "Debrief closed" : "Did the win happen?"}</h2><p class="muted">Two minutes now makes the next event smarter.</p></div>${done ? '<span class="status-pill done">Closed</span>' : '<span class="status-pill">Open</span>'}</div>
       <div class="debrief-grid">
         <div class="debrief-card">
@@ -585,14 +585,14 @@ function renderAfterEventTab(body, event, guests) {
       ${!done ? '<button class="button" id="close-debrief" type="button">Close the debrief</button>' : `<p class="closed-note">Closed ${fmtTsDate(event.debriefedAt)}. These open loops now travel with each person.</p>`}
     </section>
     <section class="after-section">
-      <div class="section-kicker">02 Â· Intro follow-through</div>
+      <div class="section-kicker">02 · Intro follow-through</div>
       <div class="section-head"><div><h2>Make the room keep working.</h2><p class="muted">Each connector tag becomes a ready-to-send introduction with the credible reason already named.</p></div></div>
       <div class="intro-stack">
         ${edges.map(edge => {
           const a=personById(edge.aId), b=personById(edge.bId), draft=edge.introMessage || introDraft(event,edge);
           if(!a || !b) return "";
           return `<article class="intro-card ${edge.introSentAt ? "sent" : ""}" data-edge="${edge.id}">
-            <div class="intro-top"><div><div class="intro-pair">${esc(a.name)} <span>â</span> ${esc(b.name)}</div><p>${esc(edge.basis)}</p></div>${edge.introSentAt ? '<span class="status-pill done">Sent</span>' : '<span class="status-pill">Ready</span>'}</div>
+            <div class="intro-top"><div><div class="intro-pair">${esc(a.name)} <span>↔</span> ${esc(b.name)}</div><p>${esc(edge.basis)}</p></div>${edge.introSentAt ? '<span class="status-pill done">Sent</span>' : '<span class="status-pill">Ready</span>'}</div>
             <textarea class="intro-draft" rows="5" ${edge.introSentAt ? "disabled" : ""}>${esc(draft)}</textarea>
             <div class="intro-actions">
               <button class="button small ghost" data-copy-intro="${edge.id}" type="button">Copy as text</button>
@@ -601,7 +601,7 @@ function renderAfterEventTab(body, event, guests) {
           </article>`;
         }).join("") || '<p class="empty-state">Connector pairings will appear here as ready-to-send introductions.</p>'}
       </div>
-      <div class="section-kicker">03 Â· Texted notes</div>
+      <div class="section-kicker">03 · Texted notes</div>
       <div class="section-head"><div><h2>What the room told you.</h2><p class="muted">Everything texted in during the event, and the follow-ups it opened.</p></div></div>
       <div class="notes-feed">
         ${notesFor(event.id).map(n => noteCardHtml(n, guests)).join("") || '<p class="empty-state">No notes were texted in during this event.</p>'}
